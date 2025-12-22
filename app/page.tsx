@@ -3,18 +3,49 @@
 import React, { useState } from "react";
 
 const Home = () => {
+  const COACH_PHONE_E164 = "+17206122979";
+  const COACH_PHONE_WA = "17206122979"; // WhatsApp requires digits only in wa.me links
+
+  const defaultTextTemplate =
+    "Hi David, my player is __ years old. Main goal is __. Best days are __. We’re in __ (Gilbert/Mesa).";
+
   const [formData, setFormData] = useState({
-    name: "",
+    parentName: "",
     email: "",
     phone: "",
-    message: "",
+    playerAge: "",
+    mainGoal: "",
+    bestDaysTimes: "",
+    area: "",
+    sessionType: "Private (1-on-1)",
+    notes: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formStatus, setFormStatus] = useState<
+    "idle" | "success" | "error" | "loading"
+  >("idle");
+
+  const buildPrefilledMessage = () => {
+    const age = formData.playerAge?.trim() || "__";
+    const goal = formData.mainGoal?.trim() || "__";
+    const days = formData.bestDaysTimes?.trim() || "__";
+    const area = formData.area?.trim() || "__";
+    return `Hi David, my player is ${age} years old. Main goal is ${goal}. Best days are ${days}. We’re in ${area} (Gilbert/Mesa).`;
+  };
+
+  const smsHref = `sms:${COACH_PHONE_E164}?body=${encodeURIComponent(
+    buildPrefilledMessage()
+  )}`;
+  const waHref = `https://wa.me/${COACH_PHONE_WA}?text=${encodeURIComponent(
+    buildPrefilledMessage()
+  )}`;
+  const telHref = `tel:${COACH_PHONE_E164}`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setFormStatus("loading");
 
     try {
       const response = await fetch("/api/contact", {
@@ -22,20 +53,34 @@ const Home = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          message: buildPrefilledMessage(),
+        }),
       });
 
       if (response.ok) {
-        alert("Thank you for your interest! I will get back to you soon.");
-        setFormData({ name: "", email: "", phone: "", message: "" });
+        setFormStatus("success");
+        setFormData({
+          parentName: "",
+          email: "",
+          phone: "",
+          playerAge: "",
+          mainGoal: "",
+          bestDaysTimes: "",
+          area: "",
+          sessionType: "Private (1-on-1)",
+          notes: "",
+        });
       } else {
-        alert("There was an error sending your message. Please try again.");
+        setFormStatus("error");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("There was an error sending your message. Please try again.");
+      setFormStatus("error");
     } finally {
       setIsSubmitting(false);
+      if (formStatus === "loading") setFormStatus("idle");
     }
   };
 
@@ -49,9 +94,9 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50">
+    <div className="min-h-screen bg-linear-to-b from-white to-emerald-50 pb-24 md:pb-0">
       {/* Header */}
-      <header className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-lg sticky top-0 z-50">
+      <header className="bg-linear-to-r from-emerald-600 to-emerald-700 text-white shadow-lg sticky top-0 z-50">
         <div className="container mx-auto px-6 py-3">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
@@ -62,31 +107,37 @@ const Home = () => {
               />
               <div>
                 <h1 className="text-2xl font-bold tracking-tight">
-                  David Fales
+                  David’s Soccer Training
                 </h1>
                 <p className="text-emerald-100 text-xs mt-0.5">
-                  Private Coaching & Development
+                  Coach David • Gilbert, Mesa & nearby East Valley
                 </p>
               </div>
             </div>
             <nav className="hidden md:flex space-x-6">
               <a
-                href="#services"
+                href="#how-it-works"
                 className="hover:text-emerald-200 transition-colors duration-200 font-medium text-sm"
               >
-                Services
+                How it works
               </a>
               <a
-                href="#testing"
+                href="#what-we-work-on"
                 className="hover:text-emerald-200 transition-colors duration-200 font-medium text-sm"
               >
-                Testing
+                What we work on
               </a>
               <a
-                href="#credentials"
+                href="#pricing"
                 className="hover:text-emerald-200 transition-colors duration-200 font-medium text-sm"
               >
-                Credentials
+                Pricing
+              </a>
+              <a
+                href="#faq"
+                className="hover:text-emerald-200 transition-colors duration-200 font-medium text-sm"
+              >
+                FAQ
               </a>
               <a
                 href="#contact"
@@ -100,35 +151,128 @@ const Home = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="py-20 px-6 bg-gradient-to-b from-emerald-50 to-white">
-        <div className="container mx-auto text-center max-w-4xl">
-          <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Transform Your Potential into{" "}
-            <span className="text-emerald-600">Performance</span>
-          </h2>
-          <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            Professional coaching backed by science, certification, and proven
-            results
-          </p>
-          <a
-            href="#contact"
-            className="inline-block bg-emerald-600 text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-emerald-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-          >
-            Start Your Journey
-          </a>
+      <section className="py-14 md:py-20 px-6 bg-linear-to-b from-emerald-50 to-white">
+        <div className="container mx-auto max-w-5xl">
+          <div className="grid lg:grid-cols-2 gap-10 items-center">
+            <div>
+              <p className="text-emerald-700 font-semibold mb-3">
+                Private soccer training (Gilbert & Mesa)
+              </p>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-5 leading-tight">
+                Private Soccer Training in{" "}
+                <span className="text-emerald-600">Gilbert and Mesa</span>
+              </h2>
+              <p className="text-lg md:text-xl text-gray-700 mb-6 leading-relaxed">
+                1-on-1 and small group sessions for ages 8–16. Clear goals, real
+                improvement, and a coach parents can trust.
+              </p>
+
+              <ul className="space-y-3 mb-8">
+                {[
+                  "Customized sessions based on your player’s needs",
+                  "Progress tracking with simple skill benchmarks",
+                  "Flexible scheduling by text",
+                ].map((item) => (
+                  <li key={item} className="flex items-start text-gray-700">
+                    <span className="text-emerald-600 mr-3 text-xl leading-none">
+                      ✓
+                    </span>
+                    <span className="text-base md:text-lg">{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href={smsHref}
+                  className="inline-flex items-center justify-center bg-emerald-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-emerald-700 transition-colors shadow-lg"
+                >
+                  Text Coach David
+                </a>
+                <a
+                  href={waHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center bg-white text-emerald-700 px-6 py-3 rounded-full font-semibold border-2 border-emerald-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
+                >
+                  WhatsApp
+                </a>
+                <a
+                  href={telHref}
+                  className="inline-flex items-center justify-center bg-white text-gray-800 px-6 py-3 rounded-full font-semibold border-2 border-gray-200 hover:border-gray-300 transition-colors"
+                >
+                  Call
+                </a>
+              </div>
+
+              <p className="text-sm text-gray-500 mt-4">
+                No online calendar needed — we’ll confirm time & location by
+                text.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-3xl shadow-xl border border-emerald-100 overflow-hidden">
+              <div className="p-6 md:p-8">
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  Quick Start
+                </h3>
+                <p className="text-gray-600 mb-5">
+                  Copy/paste this text and you’re done.
+                </p>
+
+                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4">
+                  <p className="text-gray-800 leading-relaxed">
+                    {defaultTextTemplate}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3 mt-5">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(
+                          defaultTextTemplate
+                        );
+                      } catch {
+                        // Clipboard may fail in some browsers; still ok.
+                      }
+                    }}
+                    className="inline-flex items-center justify-center bg-gray-900 text-white px-5 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
+                  >
+                    Copy template
+                  </button>
+                  <a
+                    href={smsHref}
+                    className="inline-flex items-center justify-center bg-emerald-600 text-white px-5 py-3 rounded-full font-semibold hover:bg-emerald-700 transition-colors"
+                  >
+                    Open Text
+                  </a>
+                  <a
+                    href={waHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center bg-white text-emerald-700 px-5 py-3 rounded-full font-semibold border-2 border-emerald-200 hover:bg-emerald-50 transition-colors"
+                  >
+                    Open WhatsApp
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Who This Is For Section */}
-      <section className="py-20 px-6 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white">
+      <section className="py-20 px-6 bg-linear-to-r from-emerald-600 to-emerald-700 text-white">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
               Who This Is For
             </h2>
             <p className="text-xl text-emerald-100 leading-relaxed max-w-3xl mx-auto">
-              Personalized soccer training designed specifically for YOU,
-              focused on your unique strengths and development areas
+              Designed for families who want structured training, clear goals,
+              and consistent progress.
             </p>
           </div>
 
@@ -156,11 +300,11 @@ const Home = () => {
             <div className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl border-2 border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
               <div className="text-6xl mb-4 text-center">🎯</div>
               <h3 className="text-2xl font-bold mb-3 text-center">
-                Individual Focus
+                Individual attention
               </h3>
               <p className="text-emerald-50 text-center leading-relaxed">
-                One-on-one training specifically focused on YOUR development,
-                strengths, and goals
+                One-on-one sessions with a customized plan for your player, plus
+                clear goals and measurable progress.
               </p>
             </div>
           </div>
@@ -176,53 +320,119 @@ const Home = () => {
         </div>
       </section>
 
+      {/* How it works */}
+      <section id="how-it-works" className="py-20 px-6 bg-white">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-14">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              How it works
+            </h2>
+            <p className="text-xl text-gray-600">
+              Simple scheduling. Clear plan. Real progress.
+            </p>
+            <p className="text-base text-gray-600 mt-3 max-w-3xl mx-auto">
+              Sessions are organized, age-appropriate, and parent-friendly. I
+              communicate clearly before and after training.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: "Step 1",
+                title: "Text me your player’s age + main goal",
+                desc: "We’ll pick one priority (confidence on the ball, passing, finishing, etc.).",
+                icon: "💬",
+              },
+              {
+                step: "Step 2",
+                title: "I confirm a time + location",
+                desc: "Usually local parks in Gilbert/Mesa. Exact spot shared when we schedule.",
+                icon: "📍",
+              },
+              {
+                step: "Step 3",
+                title: "We train — you get a simple progress plan",
+                desc: "Short benchmarks so you can see improvement session to session.",
+                icon: "✅",
+              },
+            ].map((s) => (
+              <div
+                key={s.step}
+                className="bg-linear-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-100"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-emerald-700 font-semibold">
+                    {s.step}
+                  </span>
+                  <span className="text-4xl">{s.icon}</span>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  {s.title}
+                </h3>
+                <p className="text-gray-700 leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10 text-center">
+            <a
+              href={smsHref}
+              className="inline-flex items-center justify-center bg-emerald-600 text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-emerald-700 transition-colors shadow-lg"
+            >
+              Text to get started
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Training Focus Section */}
-      <section id="services" className="py-20 px-6 bg-white">
+      <section id="what-we-work-on" className="py-20 px-6 bg-white">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Training Focus
+              What we work on
             </h2>
             <p className="text-xl text-gray-600">
-              100% ball-based technical training for complete player development
+              Parent-friendly focus areas (skills that show up in games)
             </p>
           </div>
 
           {/* Part 1: Technical Skills */}
           <div className="mb-16">
             <h3 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-              Core Technical Skills
+              Core skills
             </h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
                 {
                   icon: "⚽",
-                  title: "First Touch",
+                  title: "First touch & control",
                   description:
-                    "Master ball control and receiving skills with both feet under pressure.",
+                    "Cleaner control so your player feels calm and confident receiving the ball.",
                 },
                 {
                   icon: "🏃",
-                  title: "Dribbling",
+                  title: "Dribbling confidence",
                   description:
-                    "Build close control, moves, and the ability to beat defenders.",
+                    "Close control under pressure and the confidence to beat defenders.",
                 },
                 {
                   icon: "🎯",
-                  title: "Passing",
+                  title: "Passing accuracy",
                   description:
-                    "Perfect technique and accuracy for short and long distribution.",
+                    "Better technique and consistency (short and long passes).",
                 },
                 {
                   icon: "🥅",
                   title: "Finishing",
                   description:
-                    "Improve shooting power, placement, and composure in front of goal.",
+                    "Stronger shots, better placement, and more composure in front of goal.",
                 },
               ].map((skill, index) => (
                 <div
                   key={index}
-                  className="bg-gradient-to-br from-emerald-50 to-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-emerald-100 text-center"
+                  className="bg-linear-to-br from-emerald-50 to-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-emerald-100 text-center"
                 >
                   <div className="text-5xl mb-3">{skill.icon}</div>
                   <h4 className="text-xl font-bold text-gray-900 mb-2">
@@ -238,29 +448,25 @@ const Home = () => {
 
           {/* Part 2: Training Approach */}
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-gradient-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
+            <div className="bg-linear-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
               <div className="text-5xl mb-4 text-center">🎯</div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center">
-                Tailored to You
+                Clear goals (not random drills)
               </h3>
               <p className="text-gray-700 leading-relaxed text-lg">
-                Every session is customized based on your age, current skill
-                level, and specific goals. Whether you're building fundamentals
-                or refining advanced techniques, the training adapts to where
-                you are and where you want to go.
+                Every session is customized to your player’s age, level, and one
+                main priority — so improvement is easier to see and track.
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
+            <div className="bg-linear-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
               <div className="text-5xl mb-4 text-center">👥</div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center">
-                Flexible Formats
+                Private + small group options
               </h3>
               <p className="text-gray-700 leading-relaxed text-lg">
-                Choose between individual one-on-one sessions for maximum
-                personalized attention, or small-group training to add
-                competitive elements while still getting focused coaching. Both
-                formats ensure you get the touches and feedback you need.
+                Choose 1-on-1 for maximum attention, or small groups for more
+                game-like pressure while still getting focused coaching.
               </p>
             </div>
           </div>
@@ -270,7 +476,7 @@ const Home = () => {
       {/* Testing Section */}
       <section
         id="testing"
-        className="py-20 px-6 bg-gradient-to-b from-emerald-50 to-emerald-100"
+        className="py-20 px-6 bg-linear-to-b from-emerald-50 to-emerald-100"
       >
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
@@ -280,6 +486,10 @@ const Home = () => {
             <p className="text-xl text-gray-600">
               Data-driven skill assessments to track your progress, identify
               areas for improvement, and celebrate your achievements.
+            </p>
+            <p className="text-base text-gray-600 mt-3 max-w-3xl mx-auto">
+              Testing is simple and optional. It helps us measure progress — not
+              overcomplicate training.
             </p>
           </div>
 
@@ -359,7 +569,7 @@ const Home = () => {
 
           {/* Additional Tests Note */}
           <div className="mt-12 text-center">
-            <div className="bg-gradient-to-r from-emerald-50 to-white p-8 rounded-2xl shadow-md border border-emerald-200 max-w-3xl mx-auto">
+            <div className="bg-linear-to-r from-emerald-50 to-white p-8 rounded-2xl shadow-md border border-emerald-200 max-w-3xl mx-auto">
               <p className="text-gray-700 text-lg mb-2">
                 <span className="font-bold text-emerald-600">
                   Additional tests available
@@ -403,39 +613,28 @@ const Home = () => {
 
             {/* Bio Text */}
             <div className="order-1 md:order-2 space-y-6">
-              <div className="bg-gradient-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
+              <div className="bg-linear-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
                 <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
                   <span className="text-3xl mr-3">⚽</span>
-                  Hi, I'm David Fales
+                  Hi, I’m Coach David
                 </h3>
                 <p className="text-gray-700 leading-relaxed text-lg">
                   I'm a dedicated soccer coach with a passion for helping young
                   players reach their full potential. What sets my coaching
-                  apart is my data-driven approach I combine the results from
-                  skill assessments and tests with personalized training that's
-                  tailored specifically to how YOU play. This allows me to be an
-                  all-around coach who addresses every aspect of your game, from
-                  technical skills to tactical understanding, while building a
-                  genuine love for the beautiful game.
+                  apart is a clear plan + measurable benchmarks, paired with
+                  supportive coaching that builds confidence and consistency.
                 </p>
               </div>
 
-              <div className="bg-gradient-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
+              <div className="bg-linear-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
                 <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
                   <span className="text-3xl mr-3">🎯</span>
                   My Coaching Philosophy
                 </h3>
                 <p className="text-gray-700 leading-relaxed text-lg">
-                  Every player is unique, and that's exactly why I use a
-                  combination of objective test data and in-depth observation of
-                  your playing style. By analyzing how you perform in drills,
-                  understanding your strengths, and identifying areas for
-                  growth, I create a completely customized training plan that's
-                  designed just for you. Whether you're just starting out or
-                  looking to compete at higher levels, this comprehensive
-                  approach ensures you get the all-around development you need
-                  to reach your goals. Let's take your game to the next level
-                  together!
+                  Sessions stay organized and age-appropriate. We focus on one
+                  priority at a time, track progress simply, and communicate
+                  clearly with parents.
                 </p>
               </div>
             </div>
@@ -457,7 +656,7 @@ const Home = () => {
 
           <div className="grid md:grid-cols-2 gap-12">
             {/* Certifications */}
-            <div className="bg-gradient-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
+            <div className="bg-linear-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
               <div className="flex items-center mb-6">
                 <span className="text-5xl mr-4">🏆</span>
                 <h3 className="text-3xl font-bold text-gray-900">
@@ -468,12 +667,14 @@ const Home = () => {
                 {[
                   "USSF D License",
                   "Coerver Diploma",
+                  "Background checked through Coerver Arizona",
+                  "CPR & First Aid trained",
                   "11v11 Grassroots Certification",
                   "9v9 Grassroots Certification",
                   "7v7 Grassroots Certification",
                 ].map((cert, index) => (
                   <li key={index} className="flex items-start text-gray-700">
-                    <span className="text-emerald-600 mr-3 text-2xl flex-shrink-0">
+                    <span className="text-emerald-600 mr-3 text-2xl shrink-0">
                       ●
                     </span>
                     <span className="text-lg">{cert}</span>
@@ -483,7 +684,7 @@ const Home = () => {
             </div>
 
             {/* Experience */}
-            <div className="bg-gradient-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
+            <div className="bg-linear-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
               <div className="flex items-center mb-6">
                 <span className="text-5xl mr-4">💼</span>
                 <h3 className="text-3xl font-bold text-gray-900">Experience</h3>
@@ -523,7 +724,7 @@ const Home = () => {
       </section>
 
       {/* Getting Started Section */}
-      <section className="py-20 px-6 bg-gradient-to-b from-emerald-50 to-white">
+      <section className="py-20 px-6 bg-linear-to-b from-emerald-50 to-white">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -583,8 +784,34 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Reviews */}
+      <section id="reviews" className="py-20 px-6 bg-white">
+        <div className="container mx-auto max-w-4xl">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Reviews
+            </h2>
+            <p className="text-xl text-gray-600">
+              Building reviews now — ask for references any time.
+            </p>
+          </div>
+
+          <div className="bg-linear-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
+            <p className="text-gray-800 text-lg leading-relaxed">
+              <span className="font-bold text-emerald-700">
+                First 10 families:
+              </span>{" "}
+              $10 off if you leave an honest Google review after session 2.
+            </p>
+            <p className="text-gray-600 mt-3">
+              No pressure — I’m focused on earning trust the right way.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing & Scheduling Section */}
-      <section className="py-20 px-6 bg-white">
+      <section id="pricing" className="py-20 px-6 bg-white">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -596,18 +823,18 @@ const Home = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 text-white p-8 rounded-2xl shadow-2xl border-2 border-emerald-500">
+            <div className="bg-linear-to-br from-emerald-600 to-emerald-700 text-white p-8 rounded-2xl shadow-2xl border-2 border-emerald-500">
               <div className="text-5xl mb-4 text-center">💰</div>
               <h3 className="text-3xl font-bold mb-4 text-center">
-                $60 per Hour
+                Private Session: $60 / hour
               </h3>
               <p className="text-emerald-50 text-center text-lg mb-6">
-                Per player
+                Small groups available — ask for rates
               </p>
               <div className="space-y-3">
                 <div className="flex items-center text-emerald-50">
                   <span className="text-2xl mr-3">✓</span>
-                  <span>Individual or small-group sessions</span>
+                  <span>1-on-1 and small group options</span>
                 </div>
                 <div className="flex items-center text-emerald-50">
                   <span className="text-2xl mr-3">✓</span>
@@ -615,23 +842,26 @@ const Home = () => {
                 </div>
                 <div className="flex items-center text-emerald-50">
                   <span className="text-2xl mr-3">✓</span>
-                  <span>100% ball-based training</span>
+                  <span>Ball-based technical training</span>
                 </div>
                 <div className="flex items-center text-emerald-50">
                   <span className="text-2xl mr-3">✓</span>
-                  <span>Personalized coaching plan</span>
+                  <span>Simple progress plan after sessions</span>
                 </div>
               </div>
+              <p className="text-emerald-100 text-sm mt-6 text-center">
+                Payment and details confirmed after we pick a time.
+              </p>
             </div>
 
-            <div className="bg-gradient-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
+            <div className="bg-linear-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
               <div className="text-5xl mb-4 text-center">📅</div>
               <h3 className="text-3xl font-bold text-gray-900 mb-4 text-center">
                 Flexible Scheduling
               </h3>
               <p className="text-gray-700 leading-relaxed text-lg mb-6">
-                Training sessions are scheduled directly via message. Times are
-                flexible and based on availability.
+                Sessions are scheduled directly by text. Times are flexible and
+                based on availability.
               </p>
               <div className="space-y-3">
                 <div className="flex items-center text-gray-700">
@@ -648,10 +878,82 @@ const Home = () => {
                 </div>
                 <div className="flex items-center text-gray-700">
                   <span className="text-2xl mr-3 text-emerald-600">✓</span>
-                  <span>Schedule via text, call, or email</span>
+                  <span>Schedule via text, call, WhatsApp, or email</span>
                 </div>
               </div>
+              <div className="mt-8 flex flex-wrap gap-3 justify-center">
+                <a
+                  href={smsHref}
+                  className="inline-flex items-center justify-center bg-emerald-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-emerald-700 transition-colors shadow"
+                >
+                  Text
+                </a>
+                <a
+                  href={waHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center bg-white text-emerald-700 px-6 py-3 rounded-full font-semibold border-2 border-emerald-200 hover:bg-emerald-50 transition-colors"
+                >
+                  WhatsApp
+                </a>
+                <a
+                  href={telHref}
+                  className="inline-flex items-center justify-center bg-white text-gray-800 px-6 py-3 rounded-full font-semibold border-2 border-gray-200 hover:border-gray-300 transition-colors"
+                >
+                  Call
+                </a>
+              </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="py-20 px-6 bg-white">
+        <div className="container mx-auto max-w-4xl">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              FAQ
+            </h2>
+            <p className="text-xl text-gray-600">
+              Quick answers parents usually want.
+            </p>
+          </div>
+
+          <div className="space-y-5">
+            {[
+              {
+                q: "Where do sessions happen?",
+                a: "We meet at well-known public parks in Gilbert/Mesa. I’ll confirm the exact park when we schedule.",
+              },
+              {
+                q: "What age is this for?",
+                a: "Ages 8–16. Beginner to club level.",
+              },
+              {
+                q: "What should my player bring?",
+                a: "Ball, water, cleats, shin guards.",
+              },
+              { q: "Do you do small groups?", a: "Yes — text me for options." },
+              {
+                q: "What if we need to reschedule?",
+                a: "Just text me as early as possible and we’ll find a new time.",
+              },
+              {
+                q: "How fast will we see improvement?",
+                a: "Most players improve fastest with consistency. I’ll give a simple plan after the first session.",
+              },
+            ].map((item) => (
+              <div
+                key={item.q}
+                className="bg-linear-to-br from-emerald-50 to-white p-6 rounded-2xl shadow-md border border-emerald-100"
+              >
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {item.q}
+                </h3>
+                <p className="text-gray-700 leading-relaxed">{item.a}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -659,103 +961,272 @@ const Home = () => {
       {/* Contact Section */}
       <section
         id="contact"
-        className="py-20 px-6 bg-gradient-to-b from-emerald-50 to-emerald-100"
+        className="py-20 px-6 bg-linear-to-b from-emerald-50 to-emerald-100"
       >
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Let's Connect
+              Text me to get started
             </h2>
             <p className="text-xl text-gray-600">
-              Ready to start your transformation? Get in touch today.
+              Fastest is text or WhatsApp. If you prefer, fill this quick form.
             </p>
           </div>
 
           <div className="bg-white p-10 rounded-3xl shadow-2xl border-2 border-emerald-200">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-10">
               <div>
-                <label
-                  htmlFor="name"
-                  className="block text-gray-700 font-semibold mb-2 text-lg"
-                >
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors text-gray-900"
-                  placeholder="John Doe"
-                />
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  Quick message (copy/paste)
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  This is the easiest way to schedule.
+                </p>
+                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4">
+                  <p className="text-gray-800 leading-relaxed">
+                    {buildPrefilledMessage()}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-3 mt-5">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(
+                          buildPrefilledMessage()
+                        );
+                      } catch {
+                        // noop
+                      }
+                    }}
+                    className="inline-flex items-center justify-center bg-gray-900 text-white px-5 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
+                  >
+                    Copy
+                  </button>
+                  <a
+                    href={smsHref}
+                    className="inline-flex items-center justify-center bg-emerald-600 text-white px-5 py-3 rounded-full font-semibold hover:bg-emerald-700 transition-colors"
+                  >
+                    Text
+                  </a>
+                  <a
+                    href={waHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center bg-white text-emerald-700 px-5 py-3 rounded-full font-semibold border-2 border-emerald-200 hover:bg-emerald-50 transition-colors"
+                  >
+                    WhatsApp
+                  </a>
+                </div>
               </div>
 
               <div>
-                <label
-                  htmlFor="email"
-                  className="block text-gray-700 font-semibold mb-2 text-lg"
-                >
-                  Email Address *
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors text-gray-900"
-                  placeholder="john@example.com"
-                />
-              </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  Or send a quick form
+                </h3>
 
-              <div>
-                <label
-                  htmlFor="phone"
-                  className="block text-gray-700 font-semibold mb-2 text-lg"
-                >
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors text-gray-900"
-                  placeholder="(555) 123-4567"
-                />
-              </div>
+                {formStatus === "success" ? (
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-gray-800">
+                    <p className="font-semibold mb-1">Thanks — message sent.</p>
+                    <p className="text-gray-700">
+                      I’ll reply as soon as I can to confirm a time and
+                      location.
+                    </p>
+                  </div>
+                ) : formStatus === "error" ? (
+                  <div className="bg-red-50 border border-red-200 rounded-2xl p-5 text-gray-800 mb-5">
+                    <p className="font-semibold mb-1">
+                      Something went wrong sending your message.
+                    </p>
+                    <p className="text-gray-700">
+                      Please try again, or just text me directly.
+                    </p>
+                  </div>
+                ) : null}
 
-              <div>
-                <label
-                  htmlFor="message"
-                  className="block text-gray-700 font-semibold mb-2 text-lg"
-                >
-                  Message *
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  rows={6}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors resize-none text-gray-900"
-                  placeholder="Tell me about your goals and what you're looking to achieve..."
-                />
-              </div>
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div>
+                    <label
+                      htmlFor="parentName"
+                      className="block text-gray-700 font-semibold mb-2 text-lg"
+                    >
+                      Parent name *
+                    </label>
+                    <input
+                      type="text"
+                      id="parentName"
+                      name="parentName"
+                      value={formData.parentName}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors text-gray-900"
+                      placeholder="John Doe"
+                    />
+                  </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-emerald-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-emerald-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none"
-              >
-                {isSubmitting ? "Sending..." : "Send Message"}
-              </button>
-            </form>
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="block text-gray-700 font-semibold mb-2 text-lg"
+                    >
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors text-gray-900"
+                      placeholder="john@example.com"
+                    />
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="phone"
+                        className="block text-gray-700 font-semibold mb-2 text-lg"
+                      >
+                        Phone (optional)
+                      </label>
+                      <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors text-gray-900"
+                        placeholder="(555) 123-4567"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="playerAge"
+                        className="block text-gray-700 font-semibold mb-2 text-lg"
+                      >
+                        Player age *
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        id="playerAge"
+                        name="playerAge"
+                        value={formData.playerAge}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors text-gray-900"
+                        placeholder="8–16"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="mainGoal"
+                      className="block text-gray-700 font-semibold mb-2 text-lg"
+                    >
+                      Main goal *
+                    </label>
+                    <input
+                      type="text"
+                      id="mainGoal"
+                      name="mainGoal"
+                      value={formData.mainGoal}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors text-gray-900"
+                      placeholder="First touch, dribbling confidence, finishing, etc."
+                    />
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="bestDaysTimes"
+                        className="block text-gray-700 font-semibold mb-2 text-lg"
+                      >
+                        Best days/times *
+                      </label>
+                      <input
+                        type="text"
+                        id="bestDaysTimes"
+                        name="bestDaysTimes"
+                        value={formData.bestDaysTimes}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors text-gray-900"
+                        placeholder="Mon/Wed after 4pm, Sat mornings..."
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="area"
+                        className="block text-gray-700 font-semibold mb-2 text-lg"
+                      >
+                        Area *
+                      </label>
+                      <input
+                        type="text"
+                        id="area"
+                        name="area"
+                        value={formData.area}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors text-gray-900"
+                        placeholder="Gilbert or Mesa"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="sessionType"
+                      className="block text-gray-700 font-semibold mb-2 text-lg"
+                    >
+                      Session type
+                    </label>
+                    <input
+                      type="text"
+                      id="sessionType"
+                      name="sessionType"
+                      value={formData.sessionType}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors text-gray-900"
+                      placeholder="Private (1-on-1) or Small group"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="notes"
+                      className="block text-gray-700 font-semibold mb-2 text-lg"
+                    >
+                      Notes (optional)
+                    </label>
+                    <textarea
+                      id="notes"
+                      name="notes"
+                      value={formData.notes}
+                      onChange={handleChange}
+                      rows={4}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors resize-none text-gray-900"
+                      placeholder="Anything helpful (club level, position, injuries, etc.)"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-emerald-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-emerald-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none"
+                  >
+                    {isSubmitting ? "Sending..." : "Send Message"}
+                  </button>
+                </form>
+              </div>
+            </div>
           </div>
 
           {/* Contact Info */}
@@ -774,7 +1245,7 @@ const Home = () => {
                 <div className="flex items-center mb-1">
                   <span className="text-2xl mr-2">📞</span>
                   <a
-                    href="tel:+17206122979"
+                    href={telHref}
                     className="text-lg hover:text-emerald-600 transition-colors"
                   >
                     (720) 612-2979
@@ -786,28 +1257,58 @@ const Home = () => {
               </div>
               <div className="flex items-center">
                 <span className="text-2xl mr-2">📍</span>
-                <span className="text-lg">Available for Virtual Sessions</span>
+                <span className="text-lg">Gilbert & Mesa (local parks)</span>
               </div>
             </div>
+            <p className="text-sm text-gray-500 mt-6">
+              I usually reply within 24 hours. If I’m coaching, I’ll respond
+              later that day.
+            </p>
           </div>
         </div>
       </section>
 
+      {/* Sticky mobile CTA bar */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-emerald-100 bg-white/95 backdrop-blur">
+        <div className="max-w-6xl mx-auto px-4 py-3 grid grid-cols-3 gap-3">
+          <a
+            href={smsHref}
+            className="text-center bg-emerald-600 text-white py-3 rounded-xl font-semibold shadow"
+          >
+            Text
+          </a>
+          <a
+            href={telHref}
+            className="text-center bg-white text-gray-900 py-3 rounded-xl font-semibold border-2 border-gray-200"
+          >
+            Call
+          </a>
+          <a
+            href={waHref}
+            target="_blank"
+            rel="noreferrer"
+            className="text-center bg-white text-emerald-700 py-3 rounded-xl font-semibold border-2 border-emerald-200"
+          >
+            WhatsApp
+          </a>
+        </div>
+      </div>
+
       {/* Footer */}
-      <footer className="bg-gradient-to-r from-emerald-700 to-emerald-800 text-white py-8 px-6">
+      <footer className="bg-linear-to-r from-emerald-700 to-emerald-800 text-white py-8 px-6">
         <div className="container mx-auto text-center">
           <div className="flex justify-center mb-4">
             <img
               src="/logo.jpeg"
-              alt="David Fales Coaching Logo"
+              alt="David’s Soccer Training Logo"
               className="h-12 w-auto"
             />
           </div>
           <p className="text-emerald-100 mb-2">
-            © 2025 David Fales Private Coaching. All rights reserved.
+            © 2025 David’s Soccer Training. All rights reserved.
           </p>
           <p className="text-emerald-200 text-sm">
-            Empowering individuals to achieve extraordinary results.
+            Private soccer training in Gilbert and Mesa for ages 8–16.
           </p>
         </div>
       </footer>
