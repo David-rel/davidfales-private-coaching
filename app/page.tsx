@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
+import Script from "next/script";
 
 const Home = () => {
   const COACH_PHONE_E164 = "+17206122979";
   const COACH_PHONE_WA = "17206122979"; // WhatsApp requires digits only in wa.me links
+  const CALENDLY_URL = "https://calendly.com/davidssoccertraining-info/30min";
 
   const defaultTextTemplate =
     "Hi David, my player is __ years old. Main goal is __. Best days are __. We’re in __ (Gilbert/Mesa).";
@@ -1227,6 +1229,35 @@ const Home = () => {
                 </form>
               </div>
             </div>
+          </div>
+
+          {/* Calendly */}
+          <div className="mt-10 bg-white p-8 md:p-10 rounded-3xl shadow-2xl border-2 border-emerald-200">
+            <div className="text-center mb-6">
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                Schedule a quick intro
+              </h3>
+              <p className="text-gray-600">
+                If you want to meet me first, grab a quick 15 minute slot and
+                we’ll confirm a simple location in Gilbert or Mesa and what you
+                want for your player.
+              </p>
+            </div>
+
+            {/* Calendly typically expects this CSS for proper widget styling */}
+            <link
+              rel="stylesheet"
+              href="https://assets.calendly.com/assets/external/widget.css"
+            />
+            <div
+              className="calendly-inline-widget"
+              data-url={CALENDLY_URL}
+              style={{ minWidth: "320px", height: "700px" }}
+            />
+            <Script
+              src="https://assets.calendly.com/assets/external/widget.js"
+              strategy="lazyOnload"
+            />
           </div>
 
           {/* Contact Info */}
