@@ -34,15 +34,21 @@ export const metadata: Metadata = {
     description:
       "Private soccer training in Gilbert and Mesa for ages 8–16. 1-on-1 and small group sessions. Schedule by text.",
     siteName: "David’s Soccer Training",
-    // Add an image once you have a clean square logo or action photo
-    // images: [{ url: "/og.png", width: 1200, height: 630, alt: "David’s Soccer Training" }],
+    images: [
+      {
+        url: "/icon.png",
+        width: 512,
+        height: 512,
+        alt: "David’s Soccer Training",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "David’s Soccer Training",
     description:
       "Private soccer training in Gilbert and Mesa for ages 8–16. 1-on-1 and small group sessions. Schedule by text.",
-    // images: ["/og.png"],
+    images: ["/icon.png"],
   },
   robots: {
     index: true,
