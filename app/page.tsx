@@ -6,7 +6,7 @@ import Script from "next/script";
 const Home = () => {
   const COACH_PHONE_E164 = "+17206122979";
   const COACH_PHONE_WA = "17206122979"; // WhatsApp requires digits only in wa.me links
-  const CALENDLY_URL = "https://calendly.com/davidssoccertraining-info/30min";
+  const CALENDLY_URL = "https://calendly.com/davidssoccertraining-info/intro";
 
   const defaultTextTemplate =
     "Hi David, my player is __ years old. Main goal is __. Best days are __. We’re in __ (Gilbert/Mesa).";
