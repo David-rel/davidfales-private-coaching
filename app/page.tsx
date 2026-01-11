@@ -3,6 +3,10 @@
 import React, { useState } from "react";
 import Script from "next/script";
 
+const PLAYER_DASHBOARD_URL =
+  process.env.NEXT_PUBLIC_PLAYER_DASHBOARD_URL ||
+  "https://app.davidssoccertraining.com";
+
 const Home = () => {
   const COACH_PHONE_E164 = "+17206122979";
   const COACH_PHONE_WA = "17206122979"; // WhatsApp requires digits only in wa.me links
@@ -116,38 +120,49 @@ const Home = () => {
                 </p>
               </div>
             </div>
-            <nav className="hidden md:flex space-x-6">
+            <div className="flex items-center gap-4">
+              <nav className="hidden md:flex space-x-6">
+                <a
+                  href="#how-it-works"
+                  className="hover:text-emerald-200 transition-colors duration-200 font-medium text-sm"
+                >
+                  How it works
+                </a>
+                <a
+                  href="#what-we-work-on"
+                  className="hover:text-emerald-200 transition-colors duration-200 font-medium text-sm"
+                >
+                  What we work on
+                </a>
+                <a
+                  href="#pricing"
+                  className="hover:text-emerald-200 transition-colors duration-200 font-medium text-sm"
+                >
+                  Pricing
+                </a>
+                <a
+                  href="#faq"
+                  className="hover:text-emerald-200 transition-colors duration-200 font-medium text-sm"
+                >
+                  FAQ
+                </a>
+                <a
+                  href="#contact"
+                  className="hover:text-emerald-200 transition-colors duration-200 font-medium text-sm"
+                >
+                  Contact
+                </a>
+              </nav>
+
               <a
-                href="#how-it-works"
-                className="hover:text-emerald-200 transition-colors duration-200 font-medium text-sm"
+                href={PLAYER_DASHBOARD_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center bg-white text-emerald-700 px-4 py-2 rounded-full font-semibold text-sm border-2 border-emerald-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
               >
-                How it works
+                Player Dashboard
               </a>
-              <a
-                href="#what-we-work-on"
-                className="hover:text-emerald-200 transition-colors duration-200 font-medium text-sm"
-              >
-                What we work on
-              </a>
-              <a
-                href="#pricing"
-                className="hover:text-emerald-200 transition-colors duration-200 font-medium text-sm"
-              >
-                Pricing
-              </a>
-              <a
-                href="#faq"
-                className="hover:text-emerald-200 transition-colors duration-200 font-medium text-sm"
-              >
-                FAQ
-              </a>
-              <a
-                href="#contact"
-                className="hover:text-emerald-200 transition-colors duration-200 font-medium text-sm"
-              >
-                Contact
-              </a>
-            </nav>
+            </div>
           </div>
         </div>
       </header>
@@ -582,6 +597,116 @@ const Home = () => {
                 Custom assessments can be designed to target any aspect of your
                 game
               </p>
+            </div>
+          </div>
+
+          {/* Player Dashboard */}
+          <div className="mt-14">
+            <div className="bg-white rounded-3xl shadow-xl border-2 border-emerald-200 p-8 md:p-10">
+              <div className="grid lg:grid-cols-2 gap-10 items-start">
+                <div>
+                  <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                    Player Dashboard
+                  </h3>
+                  <p className="text-lg text-gray-700 leading-relaxed">
+                    The Player Dashboard is where we keep everything organized
+                    so progress is clear — not guesswork. It helps players stay
+                    motivated and helps parents actually see improvement over
+                    time.
+                  </p>
+
+                  <div className="mt-6 space-y-3">
+                    {[
+                      {
+                        title: "Player info",
+                        desc: "Basic details so training stays personalized (age, notes, and what we’re focusing on).",
+                      },
+                      {
+                        title: "Tests & results",
+                        desc: "Skill tests like shooting, passing, and dribbling — with history so we can track improvement.",
+                      },
+                      {
+                        title: "Goals",
+                        desc: "Clear targets and next steps (what to work on between sessions).",
+                      },
+                    ].map((item) => (
+                      <div key={item.title} className="flex items-start gap-3">
+                        <span className="text-emerald-600 text-xl leading-none mt-0.5">
+                          ✓
+                        </span>
+                        <div>
+                          <p className="font-bold text-gray-900">{item.title}</p>
+                          <p className="text-gray-700">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-7">
+                    <a
+                      href={PLAYER_DASHBOARD_URL}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center justify-center bg-emerald-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-emerald-700 transition-colors shadow-lg"
+                    >
+                      Open Player Dashboard
+                    </a>
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-6">
+                  {[
+                    {
+                      title: "Tests & Results",
+                      subtitle: "Scores + history so progress is measurable",
+                      imgSrc: "/dashboard-tests-results.png",
+                      imgAlt: "Player Dashboard - Tests and Results screen",
+                      aspectClass: "aspect-[4/5]",
+                    },
+                    {
+                      title: "Goals",
+                      subtitle: "Targets + what to work on next",
+                      imgSrc: "/dashboard-goals.png",
+                      imgAlt: "Player Dashboard - Goals screen",
+                      aspectClass: "aspect-[4/5]",
+                    },
+                    {
+                      title: "Player Info",
+                      subtitle: "Profile + notes we use to personalize training",
+                      imgSrc: "/dashboard-player-info.png",
+                      imgAlt: "Player Dashboard - Player Info screen",
+                      aspectClass: "aspect-video",
+                    },
+                  ].map((card, idx) => (
+                    <div
+                      key={card.title}
+                      className={`bg-white rounded-2xl shadow-md border border-emerald-100 overflow-hidden ${
+                        idx === 2 ? "sm:col-span-2" : ""
+                      }`}
+                    >
+                      <div className="p-4 border-b border-emerald-100">
+                        <p className="font-bold text-gray-900">{card.title}</p>
+                        <p className="text-gray-600 text-sm mt-1">
+                          {card.subtitle}
+                        </p>
+                      </div>
+
+                      <div className="p-4">
+                        <div
+                          className={`${card.aspectClass} rounded-xl bg-linear-to-br from-gray-50 to-gray-100 border border-gray-200 overflow-hidden`}
+                        >
+                          <img
+                            src={card.imgSrc}
+                            alt={card.imgAlt}
+                            className="w-full h-full object-contain"
+                            loading="lazy"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
