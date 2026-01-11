@@ -5,7 +5,7 @@ export function GET(_req: NextRequest) {
     "User-agent: *",
     "Allow: /",
     "",
-    "Sitemap: https://www.davidsoccertraining.com/sitemap.xml",
+    "Sitemap: https://www.davidssoccertraining.com/sitemap.xml",
   ].join("\n");
 
   return new Response(body, {

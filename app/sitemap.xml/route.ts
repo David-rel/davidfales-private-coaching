@@ -16,7 +16,7 @@ type SitemapUrl = {
   priority?: number;
 };
 
-const SITE_URL = "https://www.davidsoccertraining.com";
+const SITE_URL = "https://www.davidssoccertraining.com";
 
 function toIsoDate(d: Date) {
   return d.toISOString().split("T")[0];

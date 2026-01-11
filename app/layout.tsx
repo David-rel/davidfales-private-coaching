@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
-const SITE_URL = "https://www.davidsoccertraining.com";
+const SITE_URL = "https://www.davidssoccertraining.com";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
