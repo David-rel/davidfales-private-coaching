@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { getPublishedPosts } from "@/app/lib/db/queries";
 
 type ChangeFreq =
   | "always"
@@ -47,8 +48,11 @@ ${items}
 </urlset>`;
 }
 
-export function GET(_req: NextRequest) {
+export async function GET(_req: NextRequest) {
   const today = toIsoDate(new Date());
+
+  // Get all published blog posts
+  const posts = await getPublishedPosts(1000, 0);
 
   const urls: SitemapUrl[] = [
     {
@@ -57,8 +61,19 @@ export function GET(_req: NextRequest) {
       changefreq: "weekly",
       priority: 1.0,
     },
-    // Add more pages here if you create them later:
-    // { loc: `${SITE_URL}/pricing`, lastmod: today, changefreq: "monthly", priority: 0.7 },
+    {
+      loc: `${SITE_URL}/blog`,
+      lastmod: today,
+      changefreq: "daily",
+      priority: 0.8,
+    },
+    // Add all blog posts
+    ...posts.map((post) => ({
+      loc: `${SITE_URL}/blog/${post.slug}`,
+      lastmod: toIsoDate(new Date(post.published_at!)),
+      changefreq: "monthly" as ChangeFreq,
+      priority: 0.7,
+    })),
   ];
 
   const xml = buildXml(urls);

@@ -4,6 +4,8 @@ export function GET(_req: NextRequest) {
   const body = [
     "User-agent: *",
     "Allow: /",
+    "Disallow: /blogAdmin",
+    "Disallow: /api/",
     "",
     "Sitemap: https://www.davidssoccertraining.com/sitemap.xml",
   ].join("\n");
