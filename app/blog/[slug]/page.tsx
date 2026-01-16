@@ -10,6 +10,10 @@ import CommentSection from "@/app/components/blog/CommentSection";
 
 const SITE_URL = "https://www.davidssoccertraining.com";
 
+// Force dynamic rendering to prevent static caching
+// Posts need fresh data for view counts and new comments
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {

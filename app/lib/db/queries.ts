@@ -6,6 +6,7 @@ import {
   BlogPostListItem,
   BlogPostWithCounts,
 } from "@/app/types/blog";
+import { Photo, PhotoListItem } from "@/app/types/gallery";
 import crypto from "crypto";
 
 // ========== BLOG POSTS ==========
@@ -327,4 +328,144 @@ export async function toggleLike(
     liked: existing.rows.length === 0,
     count,
   };
+}
+
+// ========== PHOTOS ==========
+
+export async function getPublishedPhotos(
+  limit = 100,
+  offset = 0
+): Promise<PhotoListItem[]> {
+  const result = await pool.query(
+    `SELECT id, title, slug, image_url, alt_text, featured, published, category, created_at
+     FROM photos
+     WHERE published = true
+     ORDER BY featured DESC, display_order ASC, created_at DESC
+     LIMIT $1 OFFSET $2`,
+    [limit, offset]
+  );
+  return result.rows;
+}
+
+export async function getPhotoBySlug(slug: string): Promise<Photo | null> {
+  const result = await pool.query(
+    `SELECT * FROM photos WHERE slug = $1 AND published = true`,
+    [slug]
+  );
+  return result.rows[0] || null;
+}
+
+export async function getPhotoById(id: string): Promise<Photo | null> {
+  const result = await pool.query(`SELECT * FROM photos WHERE id = $1`, [id]);
+  return result.rows[0] || null;
+}
+
+export async function getAllPhotosForAdmin(): Promise<Photo[]> {
+  const result = await pool.query(
+    `SELECT * FROM photos ORDER BY created_at DESC`
+  );
+  return result.rows;
+}
+
+export async function createPhoto(data: {
+  title: string;
+  description?: string;
+  slug: string;
+  image_url: string;
+  alt_text: string;
+  meta_title?: string;
+  meta_description?: string;
+  keywords?: string[];
+  photo_date?: string;
+  photographer?: string;
+  location?: string;
+  category?: string;
+  width?: number;
+  height?: number;
+  file_size?: number;
+  featured?: boolean;
+  published?: boolean;
+  display_order?: number;
+}): Promise<Photo> {
+  const id = crypto.randomUUID();
+  const result = await pool.query(
+    `INSERT INTO photos (
+      id, title, description, slug, image_url, alt_text,
+      meta_title, meta_description, keywords,
+      photo_date, photographer, location, category,
+      width, height, file_size,
+      featured, published, display_order
+    ) VALUES (
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19
+    ) RETURNING *`,
+    [
+      id,
+      data.title,
+      data.description || null,
+      data.slug,
+      data.image_url,
+      data.alt_text,
+      data.meta_title || null,
+      data.meta_description || null,
+      data.keywords || null,
+      data.photo_date || null,
+      data.photographer || null,
+      data.location || null,
+      data.category || null,
+      data.width || null,
+      data.height || null,
+      data.file_size || null,
+      data.featured || false,
+      data.published || false,
+      data.display_order || 0,
+    ]
+  );
+  return result.rows[0];
+}
+
+export async function updatePhoto(
+  id: string,
+  data: Partial<Photo>
+): Promise<Photo | null> {
+  const fields: string[] = [];
+  const values: any[] = [];
+  let paramCount = 1;
+
+  // Build dynamic update query
+  Object.entries(data).forEach(([key, value]) => {
+    if (key !== "id" && key !== "created_at" && key !== "updated_at") {
+      fields.push(`${key} = $${paramCount}`);
+      values.push(value);
+      paramCount++;
+    }
+  });
+
+  if (fields.length === 0) return null;
+
+  values.push(id);
+  const result = await pool.query(
+    `UPDATE photos SET ${fields.join(", ")} WHERE id = $${paramCount} RETURNING *`,
+    values
+  );
+  return result.rows[0] || null;
+}
+
+export async function deletePhoto(id: string): Promise<boolean> {
+  const result = await pool.query(
+    `DELETE FROM photos WHERE id = $1 RETURNING id`,
+    [id]
+  );
+  return result.rowCount !== null && result.rowCount > 0;
+}
+
+export async function checkPhotoSlugExists(
+  slug: string,
+  excludeId?: string
+): Promise<boolean> {
+  const query = excludeId
+    ? `SELECT id FROM photos WHERE slug = $1 AND id != $2`
+    : `SELECT id FROM photos WHERE slug = $1`;
+  const params = excludeId ? [slug, excludeId] : [slug];
+  const result = await pool.query(query, params);
+  return result.rows.length > 0;
 }

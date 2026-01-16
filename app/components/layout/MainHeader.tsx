@@ -62,6 +62,12 @@ export default function MainHeader() {
               >
                 Blog
               </a>
+              <a
+                href="/gallery"
+                className="hover:text-emerald-200 transition-colors duration-200 font-medium text-sm"
+              >
+                Gallery
+              </a>
             </nav>
 
             <a
