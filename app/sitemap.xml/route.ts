@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { getPublishedPosts } from "@/app/lib/db/queries";
+import { getPublishedPosts, getPublishedPhotos } from "@/app/lib/db/queries";
 
 type ChangeFreq =
   | "always"
@@ -51,8 +51,9 @@ ${items}
 export async function GET(_req: NextRequest) {
   const today = toIsoDate(new Date());
 
-  // Get all published blog posts
+  // Get all published blog posts and photos
   const posts = await getPublishedPosts(1000, 0);
+  const photos = await getPublishedPhotos(1000, 0);
 
   const urls: SitemapUrl[] = [
     {
@@ -67,12 +68,25 @@ export async function GET(_req: NextRequest) {
       changefreq: "daily",
       priority: 0.8,
     },
+    {
+      loc: `${SITE_URL}/gallery`,
+      lastmod: today,
+      changefreq: "daily",
+      priority: 0.8,
+    },
     // Add all blog posts
     ...posts.map((post) => ({
       loc: `${SITE_URL}/blog/${post.slug}`,
       lastmod: toIsoDate(new Date(post.published_at!)),
       changefreq: "monthly" as ChangeFreq,
       priority: 0.7,
+    })),
+    // Add all gallery photos
+    ...photos.map((photo) => ({
+      loc: `${SITE_URL}/gallery/${photo.slug}`,
+      lastmod: toIsoDate(new Date(photo.created_at)),
+      changefreq: "monthly" as ChangeFreq,
+      priority: 0.6,
     })),
   ];
 
@@ -81,7 +95,10 @@ export async function GET(_req: NextRequest) {
   return new Response(xml, {
     headers: {
       "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, max-age=3600",
+      "Cache-Control": "public, max-age=0, must-revalidate",
     },
   });
 }
+
+// Revalidate every 5 minutes
+export const revalidate = 300;

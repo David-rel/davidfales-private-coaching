@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Script from "next/script";
 import MainHeader from "@/app/components/layout/MainHeader";
 import MainFooter from "@/app/components/layout/MainFooter";
+import FeaturedPhotos from "@/app/components/home/FeaturedPhotos";
 
 const PLAYER_DASHBOARD_URL =
   process.env.NEXT_PUBLIC_PLAYER_DASHBOARD_URL ||
@@ -216,6 +217,9 @@ const Home = () => {
               </div>
             </div>
           </div>
+
+          {/* Featured Photos */}
+          <FeaturedPhotos />
         </div>
       </section>
 

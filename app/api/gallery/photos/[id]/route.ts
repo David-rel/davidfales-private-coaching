@@ -9,10 +9,11 @@ import {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const photo = await getPhotoById(params.id);
+    const { id } = await params;
+    const photo = await getPhotoById(id);
 
     if (!photo) {
       return NextResponse.json({ error: "Photo not found" }, { status: 404 });
@@ -30,9 +31,11 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+
     // Verify admin authentication
     const cookieStore = await cookies();
     const sessionToken = cookieStore.get("galleryAdminSession")?.value;
@@ -42,7 +45,7 @@ export async function PUT(
     }
 
     const data = await request.json();
-    const photo = await updatePhoto(params.id, data);
+    const photo = await updatePhoto(id, data);
 
     if (!photo) {
       return NextResponse.json({ error: "Photo not found" }, { status: 404 });
@@ -60,9 +63,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+
     // Verify admin authentication
     const cookieStore = await cookies();
     const sessionToken = cookieStore.get("galleryAdminSession")?.value;
@@ -71,7 +76,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const success = await deletePhoto(params.id);
+    const success = await deletePhoto(id);
 
     if (!success) {
       return NextResponse.json({ error: "Photo not found" }, { status: 404 });

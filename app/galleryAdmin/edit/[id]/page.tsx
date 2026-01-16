@@ -6,9 +6,10 @@ import { notFound } from "next/navigation";
 export default async function EditPhotoPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const photo = await getPhotoById(params.id);
+  const { id } = await params;
+  const photo = await getPhotoById(id);
 
   if (!photo) {
     notFound();

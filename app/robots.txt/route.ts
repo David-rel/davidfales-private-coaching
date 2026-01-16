@@ -5,6 +5,7 @@ export function GET(_req: NextRequest) {
     "User-agent: *",
     "Allow: /",
     "Disallow: /blogAdmin",
+    "Disallow: /galleryAdmin",
     "Disallow: /api/",
     "",
     "Sitemap: https://www.davidssoccertraining.com/sitemap.xml",
