@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Script from "next/script";
 import Link from "next/link";
-import MainHeader from "@/app/components/layout/MainHeader";
+import MainHeaderMinimal from "@/app/components/layout/MainHeaderMinimal";
 import MainFooter from "@/app/components/layout/MainFooter";
 import FeaturedPhotos from "@/app/components/home/FeaturedPhotos";
 import BlogCard from "@/app/components/blog/BlogCard";
@@ -13,13 +13,13 @@ const PLAYER_DASHBOARD_URL =
   process.env.NEXT_PUBLIC_PLAYER_DASHBOARD_URL ||
   "https://app.davidssoccertraining.com";
 
-const Home = () => {
+const MesaGilbertLandingPage = () => {
   const COACH_PHONE_E164 = "+17206122979";
-  const COACH_PHONE_WA = "17206122979"; // WhatsApp requires digits only in wa.me links
+  const COACH_PHONE_WA = "17206122979";
   const CALENDLY_URL = "https://calendly.com/davidssoccertraining-info/intro";
 
   const defaultTextTemplate =
-    "Hi David, my player is __ years old. Main goal is __. Best days are __. We’re in __ (Gilbert/Mesa).";
+    "Hi David, my player is __ years old. Main goal is __. Best days are __. We're in Mesa/Gilbert.";
 
   const [formData, setFormData] = useState({
     parentName: "",
@@ -28,7 +28,7 @@ const Home = () => {
     playerAge: "",
     mainGoal: "",
     bestDaysTimes: "",
-    area: "",
+    area: "Mesa or Gilbert",
     sessionType: "Private (1-on-1)",
     notes: "",
   });
@@ -38,7 +38,6 @@ const Home = () => {
     "idle" | "success" | "error" | "loading"
   >("idle");
 
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [blogPosts, setBlogPosts] = useState<BlogPostListItem[]>([]);
   const [blogLoading, setBlogLoading] = useState(true);
 
@@ -46,8 +45,8 @@ const Home = () => {
     const age = formData.playerAge?.trim() || "__";
     const goal = formData.mainGoal?.trim() || "__";
     const days = formData.bestDaysTimes?.trim() || "__";
-    const area = formData.area?.trim() || "__";
-    return `Hi David, my player is ${age} years old. Main goal is ${goal}. Best days are ${days}. We’re in ${area} (Gilbert/Mesa).`;
+    const area = formData.area?.trim() || "Mesa/Gilbert";
+    return `Hi David, my player is ${age} years old. Main goal is ${goal}. Best days are ${days}. We're in ${area}.`;
   };
 
   const smsHref = `sms:${COACH_PHONE_E164}?body=${encodeURIComponent(
@@ -72,6 +71,7 @@ const Home = () => {
         body: JSON.stringify({
           ...formData,
           message: buildPrefilledMessage(),
+          source: "mesa-gilbert-landing",
         }),
       });
 
@@ -84,7 +84,7 @@ const Home = () => {
           playerAge: "",
           mainGoal: "",
           bestDaysTimes: "",
-          area: "",
+          area: "Mesa or Gilbert",
           sessionType: "Private (1-on-1)",
           notes: "",
         });
@@ -127,21 +127,194 @@ const Home = () => {
     fetchBlogPosts();
   }, []);
 
-  // Basic LocalBusiness Schema for homepage
+  // Structured Data for SEO
   const localBusinessJsonLd = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    name: "David's Soccer Training",
-    url: "https://www.davidssoccertraining.com",
-    areaServed: ["Gilbert, AZ", "Mesa, AZ", "East Valley, AZ"],
-    description:
-      "Private soccer training in Gilbert and Mesa for ages 8–16. 1-on-1 and small group sessions scheduled by text.",
+    "@id":
+      "https://www.davidssoccertraining.com/mesa-gilbert-private-soccer-training",
+    name: "David's Soccer Training - Mesa & Gilbert",
+    url: "https://www.davidssoccertraining.com/mesa-gilbert-private-soccer-training",
     telephone: "+17206122979",
+    email: "davidfalesct@gmail.com",
+    description:
+      "Private soccer training for youth players ages 8-16 in Mesa and Gilbert, Arizona. 1-on-1 and small group sessions with progress tracking.",
+    priceRange: "$60-$100",
+    areaServed: [
+      {
+        "@type": "City",
+        name: "Gilbert",
+        "@id": "https://en.wikipedia.org/wiki/Gilbert,_Arizona",
+      },
+      {
+        "@type": "City",
+        name: "Mesa",
+        "@id": "https://en.wikipedia.org/wiki/Mesa,_Arizona",
+      },
+      {
+        "@type": "Place",
+        name: "East Valley, Arizona",
+      },
+    ],
+    geo: {
+      "@type": "GeoCircle",
+      geoMidpoint: {
+        "@type": "GeoCoordinates",
+        latitude: "33.3528",
+        longitude: "-111.7890",
+      },
+      geoRadius: "15000",
+    },
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Soccer Training Services",
+      itemListElement: [
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "Service",
+            name: "1-on-1 Private Soccer Training",
+            description: "Individual soccer training session",
+          },
+          price: "60",
+          priceCurrency: "USD",
+        },
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "Service",
+            name: "2-Player Small Group Training",
+            description: "Soccer training for 2 players",
+          },
+          price: "80",
+          priceCurrency: "USD",
+        },
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "Service",
+            name: "3-Player Small Group Training",
+            description: "Soccer training for 3 players",
+          },
+          price: "90",
+          priceCurrency: "USD",
+        },
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "Service",
+            name: "4-Player Small Group Training",
+            description: "Soccer training for 4 players (maximum)",
+          },
+          price: "100",
+          priceCurrency: "USD",
+        },
+      ],
+    },
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: "5.0",
+      bestRating: "5",
+      ratingCount: "1",
+    },
+    sameAs: ["https://calendly.com/davidssoccertraining-info/intro"],
+  };
+
+  // FAQPage Schema for Mesa/Gilbert-specific questions
+  const faqPageJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "Where exactly do sessions happen in Mesa and Gilbert?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "We meet at quality public parks like Freestone Park, Discovery Park, Hetchler Park (Gilbert Soccer Complex), Red Mountain Park, and other Mesa/Gilbert locations. I'll confirm the exact spot when we schedule based on what's most convenient for you.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What age is this for?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Ages 8–16. Beginner to club level. Most of my players are in Mesa and Gilbert club soccer programs or looking to join one.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Do you work with players from specific Gilbert/Mesa soccer clubs?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes! I work with players from various East Valley clubs including Gilbert Youth Soccer Association (GYSA), Mesa United, and others. Training complements what they're learning at club practice.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What should my player bring?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Ball, water, cleats, shin guards. Parks have shade but bring sunscreen for Arizona weather.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Do you do small groups with my player's teammates?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Absolutely! Small groups (2-4 players) are great for teammates who want to train together. Just text me to coordinate.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How do I know which park we'll use?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "When you text me your location in Mesa or Gilbert, I'll suggest 2-3 nearby parks and you can pick what works best for your schedule.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What if weather is bad?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Arizona weather is usually great, but if it's raining or too hot (110+), we'll reschedule. I'll text you in advance.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How fast will we see improvement?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Most players improve fastest with consistency. I'll give a simple plan after the first session.",
+        },
+      },
+    ],
+  };
+
+  // BreadcrumbList Schema for better navigation
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://www.davidssoccertraining.com",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Mesa & Gilbert Private Soccer Training",
+        item: "https://www.davidssoccertraining.com/mesa-gilbert-private-soccer-training",
+      },
+    ],
   };
 
   return (
     <div className="min-h-screen bg-linear-to-b from-white to-emerald-50 pb-24 md:pb-0">
-      {/* Structured Data */}
+      {/* Structured Data - LocalBusiness */}
       <Script
         id="local-business-jsonld"
         type="application/ld+json"
@@ -150,7 +323,25 @@ const Home = () => {
         }}
       />
 
-      <MainHeader />
+      {/* Structured Data - FAQPage */}
+      <Script
+        id="faq-page-jsonld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqPageJsonLd),
+        }}
+      />
+
+      {/* Structured Data - BreadcrumbList */}
+      <Script
+        id="breadcrumb-jsonld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbJsonLd),
+        }}
+      />
+
+      <MainHeaderMinimal />
 
       {/* Hero Section */}
       <section className="py-14 md:py-20 px-6 bg-linear-to-b from-emerald-50 to-white">
@@ -158,22 +349,22 @@ const Home = () => {
           <div className="grid lg:grid-cols-2 gap-10 items-center">
             <div>
               <p className="text-emerald-700 font-semibold mb-3">
-                Private soccer training (Gilbert & Mesa)
+                Serving Mesa & Gilbert
               </p>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-5 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-5 leading-tight">
                 Private Soccer Training in{" "}
-                <span className="text-emerald-600">Gilbert and Mesa</span>
-              </h2>
+                <span className="text-emerald-600">Mesa and Gilbert, Arizona</span>
+              </h1>
               <p className="text-lg md:text-xl text-gray-700 mb-6 leading-relaxed">
-                1-on-1 and small group sessions for ages 8–16. Clear goals, real
-                improvement, and a coach parents can trust.
+                1-on-1 and small group sessions for ages 8–16 at convenient East Valley parks.
+                Clear goals, real improvement, and a coach parents can trust.
               </p>
 
               <ul className="space-y-3 mb-8">
                 {[
-                  "Customized sessions based on your player’s needs",
+                  "Customized sessions based on your player's needs",
                   "Progress tracking with simple skill benchmarks",
-                  "Flexible scheduling by text",
+                  "Flexible scheduling by text at Mesa/Gilbert parks",
                 ].map((item) => (
                   <li key={item} className="flex items-start text-gray-700">
                     <span className="text-emerald-600 mr-3 text-xl leading-none">
@@ -208,17 +399,17 @@ const Home = () => {
               </div>
 
               <p className="text-sm text-gray-500 mt-4">
-                Text me and we’ll confirm time & location and get started.
+                Text me and we'll confirm time & location at your preferred Mesa or Gilbert park.
               </p>
             </div>
 
             <div className="bg-white rounded-3xl shadow-xl border border-emerald-100 overflow-hidden">
               <div className="p-6 md:p-8">
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                <h2 className="text-2xl font-bold text-gray-900 mb-3">
                   Quick Start
-                </h3>
+                </h2>
                 <p className="text-gray-600 mb-5">
-                  Copy/paste this text and you’re done.
+                  Copy/paste this text and you're done.
                 </p>
 
                 <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4">
@@ -236,7 +427,7 @@ const Home = () => {
                           defaultTextTemplate
                         );
                       } catch {
-                        // Clipboard may fail in some browsers; still ok.
+                        // Clipboard may fail in some browsers
                       }
                     }}
                     className="inline-flex items-center justify-center bg-gray-900 text-white px-5 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
@@ -272,11 +463,11 @@ const Home = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Who This Is For
+              Who This Is For: Youth Soccer Players in Mesa & Gilbert
             </h2>
             <p className="text-xl text-emerald-100 leading-relaxed max-w-3xl mx-auto">
-              Designed for families who want structured training, clear goals,
-              and consistent progress.
+              Designed for Mesa and Gilbert families who want structured training,
+              clear goals, and consistent progress.
             </p>
           </div>
 
@@ -304,11 +495,11 @@ const Home = () => {
             <div className="bg-white/10 backdrop-blur-sm p-8 rounded-2xl border-2 border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
               <div className="text-6xl mb-4 text-center">🎯</div>
               <h3 className="text-2xl font-bold mb-3 text-center">
-                Individual attention
+                Convenient East Valley Locations
               </h3>
               <p className="text-emerald-50 text-center leading-relaxed">
-                One-on-one sessions with a customized plan for your player, plus
-                clear goals and measurable progress.
+                One-on-one sessions with a customized plan for your player at parks near you,
+                plus clear goals and measurable progress.
               </p>
             </div>
           </div>
@@ -329,7 +520,7 @@ const Home = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-14">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              How it works
+              How Private Soccer Training Works in the East Valley
             </h2>
             <p className="text-xl text-gray-600">
               Simple scheduling. Clear plan. Real progress.
@@ -344,14 +535,14 @@ const Home = () => {
             {[
               {
                 step: "Step 1",
-                title: "Text me your player’s age + main goal",
-                desc: "We’ll pick one priority (confidence on the ball, passing, finishing, etc.).",
+                title: "Text me your player's age + main goal",
+                desc: "We'll pick one priority (confidence on the ball, passing, finishing, etc.).",
                 icon: "💬",
               },
               {
                 step: "Step 2",
-                title: "I confirm a time + location",
-                desc: "Usually local parks in Gilbert/Mesa. Exact spot shared when we schedule.",
+                title: "We pick a park in Mesa or Gilbert that works for you",
+                desc: "Popular options: Freestone Park, Hetchler Park, Discovery Park, Red Mountain Park, or your favorite local field.",
                 icon: "📍",
               },
               {
@@ -390,12 +581,230 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Training Locations (Parks) Section - NEW */}
+      <section
+        id="training-locations"
+        className="py-20 px-6 bg-gradient-to-b from-white to-emerald-50"
+      >
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Where We Train: Mesa & Gilbert Parks
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Sessions happen at safe, convenient public parks in Mesa and Gilbert.
+              We'll confirm the exact location when we schedule based on your preference and availability.
+            </p>
+          </div>
+
+          {/* Gilbert Parks */}
+          <div className="mb-12">
+            <h3 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+              Gilbert Area Parks
+            </h3>
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* Freestone Park */}
+              <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-emerald-100">
+                <div className="text-4xl mb-3">⚽</div>
+                <h4 className="text-xl font-bold text-gray-900 mb-2">
+                  Freestone Park
+                </h4>
+                <p className="text-gray-600 text-sm mb-3">
+                  Gilbert's first major district park with 88 acres of open space
+                </p>
+                <p className="text-gray-500 text-xs">
+                  📍 1045 E. Juniper Rd, Gilbert
+                </p>
+                <ul className="mt-3 space-y-1 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2">✓</span>
+                    Large open fields
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2">✓</span>
+                    Well-maintained grass
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2">✓</span>
+                    Family-friendly amenities
+                  </li>
+                </ul>
+              </div>
+
+              {/* Discovery Park */}
+              <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-emerald-100">
+                <div className="text-4xl mb-3">🌳</div>
+                <h4 className="text-xl font-bold text-gray-900 mb-2">
+                  Discovery Park
+                </h4>
+                <p className="text-gray-600 text-sm mb-3">
+                  Modern district park in the Santan Village area
+                </p>
+                <p className="text-gray-500 text-xs">
+                  📍 2214 E. Pecos Rd, Gilbert
+                </p>
+                <ul className="mt-3 space-y-1 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2">✓</span>
+                    Open turf areas
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2">✓</span>
+                    Convenient parking
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2">✓</span>
+                    Great for training
+                  </li>
+                </ul>
+              </div>
+
+              {/* Hetchler Park */}
+              <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-emerald-100">
+                <div className="text-4xl mb-3">🏟️</div>
+                <h4 className="text-xl font-bold text-gray-900 mb-2">
+                  Hetchler Park (Gilbert Soccer Complex)
+                </h4>
+                <p className="text-gray-600 text-sm mb-3">
+                  Premier soccer facility with 22 fields (10 lighted)
+                </p>
+                <p className="text-gray-500 text-xs">
+                  📍 4260 S. Greenfield Rd, Gilbert
+                </p>
+                <ul className="mt-3 space-y-1 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2">✓</span>
+                    Professional fields
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2">✓</span>
+                    Multiple field options
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2">✓</span>
+                    Soccer-specific complex
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Mesa Parks */}
+          <div className="mb-8">
+            <h3 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+              Mesa Area Parks
+            </h3>
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* Red Mountain Park */}
+              <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-emerald-100">
+                <div className="text-4xl mb-3">🏔️</div>
+                <h4 className="text-xl font-bold text-gray-900 mb-2">
+                  Red Mountain Park
+                </h4>
+                <p className="text-gray-600 text-sm mb-3">
+                  Popular Mesa park with excellent training space
+                </p>
+                <p className="text-gray-500 text-xs">📍 Mesa, AZ</p>
+                <ul className="mt-3 space-y-1 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2">✓</span>
+                    Quality fields
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2">✓</span>
+                    Good location
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2">✓</span>
+                    Open space
+                  </li>
+                </ul>
+              </div>
+
+              {/* Other Mesa parks */}
+              <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-emerald-100">
+                <div className="text-4xl mb-3">⚽</div>
+                <h4 className="text-xl font-bold text-gray-900 mb-2">
+                  Additional Mesa Parks
+                </h4>
+                <p className="text-gray-600 text-sm mb-3">
+                  We also train at other quality Mesa parks based on your location
+                </p>
+                <ul className="mt-3 space-y-1 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2">✓</span>
+                    Riverview area
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2">✓</span>
+                    Multiple locations
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2">✓</span>
+                    Flexible options
+                  </li>
+                </ul>
+              </div>
+
+              {/* Custom location */}
+              <div className="bg-gradient-to-br from-emerald-50 to-white p-6 rounded-2xl shadow-lg border-2 border-emerald-200">
+                <div className="text-4xl mb-3">📍</div>
+                <h4 className="text-xl font-bold text-gray-900 mb-2">
+                  Your Preferred Location
+                </h4>
+                <p className="text-gray-600 text-sm mb-3">
+                  Have a park closer to you? Let's discuss options.
+                </p>
+                <ul className="mt-3 space-y-1 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2">✓</span>
+                    Flexible scheduling
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2">✓</span>
+                    Convenient for you
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2">✓</span>
+                    Just ask when booking
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Flexibility Note */}
+          <div className="mt-10 text-center">
+            <div className="bg-gradient-to-r from-emerald-50 to-white p-8 rounded-2xl shadow-md border border-emerald-200 max-w-3xl mx-auto">
+              <p className="text-gray-800 text-lg mb-2">
+                <span className="font-bold text-emerald-600">
+                  Not near these parks?
+                </span>
+              </p>
+              <p className="text-gray-700">
+                We're flexible! If you have a preferred park in the Mesa/Gilbert area,
+                just mention it when you text. We'll make it work for your schedule and location.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-10 text-center">
+            <a
+              href={smsHref}
+              className="inline-flex items-center justify-center bg-emerald-600 text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-emerald-700 transition-colors shadow-lg"
+            >
+              Text me your location
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Training Focus Section */}
       <section id="what-we-work-on" className="py-20 px-6 bg-white">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              What we work on
+              What We Work On: Core Soccer Skills for Mesa & Gilbert Players
             </h2>
             <p className="text-xl text-gray-600">
               Parent-friendly focus areas (skills that show up in games)
@@ -458,7 +867,7 @@ const Home = () => {
                 Clear goals (not random drills)
               </h3>
               <p className="text-gray-700 leading-relaxed text-lg">
-                Every session is customized to your player’s age, level, and one
+                Every session is customized to your player's age, level, and one
                 main priority — so improvement is easier to see and track.
               </p>
             </div>
@@ -606,7 +1015,7 @@ const Home = () => {
                     {[
                       {
                         title: "Player info",
-                        desc: "Basic details so training stays personalized (age, notes, and what we’re focusing on).",
+                        desc: "Basic details so training stays personalized (age, notes, and what we're focusing on).",
                       },
                       {
                         title: "Tests & results",
@@ -707,7 +1116,7 @@ const Home = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Meet Your Coach
+              Meet Your Mesa & Gilbert Soccer Coach
             </h2>
             <p className="text-xl text-gray-600">
               Passionate about developing the next generation of soccer players
@@ -721,7 +1130,7 @@ const Home = () => {
                 <div className="aspect-square">
                   <img
                     src="/me.JPG"
-                    alt="David Fales - Soccer Coach"
+                    alt="David Fales - Soccer Coach serving Mesa and Gilbert, Arizona"
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -733,13 +1142,14 @@ const Home = () => {
               <div className="bg-linear-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
                 <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
                   <span className="text-3xl mr-3">⚽</span>
-                  Hi, I’m Coach David
+                  Hi, I'm Coach David
                 </h3>
                 <p className="text-gray-700 leading-relaxed text-lg">
                   I'm a dedicated soccer coach with a passion for helping young
                   players reach their full potential. What sets my coaching
                   apart is a clear plan + measurable benchmarks, paired with
                   supportive coaching that builds confidence and consistency.
+                  I'm proud to serve Mesa and Gilbert families.
                 </p>
               </div>
 
@@ -901,12 +1311,12 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Reviews */}
+      {/* Reviews - Mesa/Gilbert specific */}
       <section id="reviews" className="py-20 px-6 bg-white">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Reviews
+              What Mesa & Gilbert Parents Say
             </h2>
             <p className="text-xl text-gray-600">
               Building reviews now — ask for references any time.
@@ -914,14 +1324,18 @@ const Home = () => {
           </div>
 
           <div className="bg-linear-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
-            <p className="text-gray-800 text-lg leading-relaxed">
+            <p className="text-gray-800 text-lg leading-relaxed mb-4">
               <span className="font-bold text-emerald-700">
-                First 10 families:
+                First 10 Mesa/Gilbert families:
               </span>{" "}
               $10 off if you leave an honest Google review after session 2.
             </p>
-            <p className="text-gray-600 mt-3">
-              No pressure — I'm focused on earning trust the right way.
+            <p className="text-gray-600 mb-4">
+              No pressure — I'm focused on earning trust the right way with East Valley families.
+            </p>
+            <p className="text-gray-700 text-sm">
+              Parents in Gilbert and Mesa appreciate clear communication, organized sessions,
+              and a coach who shows up on time with a plan. That's what you'll get.
             </p>
             <div className="mt-6 text-center">
               <a
@@ -942,7 +1356,7 @@ const Home = () => {
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Pricing & Scheduling
+              Pricing & Scheduling for Mesa/Gilbert Area
             </h2>
             <p className="text-xl text-gray-600">
               Flexible scheduling to fit your busy life
@@ -1135,12 +1549,12 @@ const Home = () => {
         </div>
       </section>
 
-      {/* FAQ */}
+      {/* FAQ - Mesa/Gilbert specific */}
       <section id="faq" className="py-20 px-6 bg-white">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              FAQ
+              FAQ: Common Questions from Mesa & Gilbert Parents
             </h2>
             <p className="text-xl text-gray-600">
               Quick answers parents usually want.
@@ -1150,25 +1564,36 @@ const Home = () => {
           <div className="space-y-5">
             {[
               {
-                q: "Where do sessions happen?",
-                a: "We meet at well-known public parks in Gilbert/Mesa. I’ll confirm the exact park when we schedule.",
+                q: "Where exactly do sessions happen in Mesa and Gilbert?",
+                a: "We meet at quality public parks like Freestone Park, Discovery Park, Hetchler Park (Gilbert Soccer Complex), Red Mountain Park, and other Mesa/Gilbert locations. I'll confirm the exact spot when we schedule based on what's most convenient for you.",
               },
               {
                 q: "What age is this for?",
-                a: "Ages 8–16. Beginner to club level.",
+                a: "Ages 8–16. Beginner to club level. Most of my players are in Mesa and Gilbert club soccer programs or looking to join one.",
+              },
+              {
+                q: "Do you work with players from specific Gilbert/Mesa soccer clubs?",
+                a: "Yes! I work with players from various East Valley clubs including Gilbert Youth Soccer Association (GYSA), Mesa United, and others. Training complements what they're learning at club practice.",
               },
               {
                 q: "What should my player bring?",
-                a: "Ball, water, cleats, shin guards.",
+                a: "Ball, water, cleats, shin guards. Parks have shade but bring sunscreen for Arizona weather.",
               },
-              { q: "Do you do small groups?", a: "Yes — text me for options." },
               {
-                q: "What if we need to reschedule?",
-                a: "Just text me as early as possible and we’ll find a new time.",
+                q: "Do you do small groups with my player's teammates?",
+                a: "Absolutely! Small groups (2-4 players) are great for teammates who want to train together. Just text me to coordinate.",
+              },
+              {
+                q: "How do I know which park we'll use?",
+                a: "When you text me your location in Mesa or Gilbert, I'll suggest 2-3 nearby parks and you can pick what works best for your schedule.",
+              },
+              {
+                q: "What if weather is bad?",
+                a: "Arizona weather is usually great, but if it's raining or too hot (110+), we'll reschedule. I'll text you in advance.",
               },
               {
                 q: "How fast will we see improvement?",
-                a: "Most players improve fastest with consistency. I’ll give a simple plan after the first session.",
+                a: "Most players improve fastest with consistency. I'll give a simple plan after the first session.",
               },
             ].map((item) => (
               <div
@@ -1182,6 +1607,15 @@ const Home = () => {
               </div>
             ))}
           </div>
+
+          <div className="mt-10 text-center">
+            <a
+              href={smsHref}
+              className="inline-flex items-center justify-center bg-emerald-600 text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-emerald-700 transition-colors shadow-lg"
+            >
+              Still have questions? Text me
+            </a>
+          </div>
         </div>
       </section>
 
@@ -1193,7 +1627,7 @@ const Home = () => {
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Text me to get started
+              Start Your Mesa/Gilbert Soccer Training Today
             </h2>
             <p className="text-xl text-gray-600">
               Fastest is text or WhatsApp. If you prefer, fill this quick form.
@@ -1256,7 +1690,7 @@ const Home = () => {
                   <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-gray-800">
                     <p className="font-semibold mb-1">Thanks — message sent.</p>
                     <p className="text-gray-700">
-                      I’ll reply as soon as I can to confirm a time and
+                      I'll reply as soon as I can to confirm a time and
                       location.
                     </p>
                   </div>
@@ -1403,7 +1837,7 @@ const Home = () => {
                         onChange={handleChange}
                         required
                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none transition-colors text-gray-900"
-                        placeholder="Gilbert or Mesa"
+                        placeholder="Mesa or Gilbert"
                       />
                     </div>
                   </div>
@@ -1467,12 +1901,10 @@ const Home = () => {
               </h3>
               <p className="text-gray-600">
                 If you want to meet me first, grab a quick 15 minute slot and
-                we’ll confirm a simple location in Gilbert or Mesa and what you
-                want for your player.
+                we'll discuss training in Mesa or Gilbert and what you want for your player.
               </p>
             </div>
 
-            {/* Calendly typically expects this CSS for proper widget styling */}
             <link
               rel="stylesheet"
               href="https://assets.calendly.com/assets/external/widget.css"
@@ -1516,11 +1948,11 @@ const Home = () => {
               </div>
               <div className="flex items-center">
                 <span className="text-2xl mr-2">📍</span>
-                <span className="text-lg">Gilbert & Mesa (local parks)</span>
+                <span className="text-lg">Mesa & Gilbert (local parks)</span>
               </div>
             </div>
             <p className="text-sm text-gray-500 mt-6">
-              I usually reply within 24 hours. If I’m coaching, I’ll respond
+              I usually reply within 24 hours. If I'm coaching, I'll respond
               later that day.
             </p>
           </div>
@@ -1607,4 +2039,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default MesaGilbertLandingPage;

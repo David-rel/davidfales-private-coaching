@@ -63,6 +63,12 @@ export async function GET(_req: NextRequest) {
       priority: 1.0,
     },
     {
+      loc: `${SITE_URL}/mesa-gilbert-private-soccer-training`,
+      lastmod: today,
+      changefreq: "weekly",
+      priority: 0.9,
+    },
+    {
       loc: `${SITE_URL}/blog`,
       lastmod: today,
       changefreq: "daily",

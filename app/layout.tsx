@@ -68,17 +68,6 @@ export const metadata: Metadata = {
   },
 };
 
-const localBusinessJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "LocalBusiness",
-  name: "David’s Soccer Training",
-  url: SITE_URL,
-  areaServed: ["Gilbert, AZ", "Mesa, AZ", "East Valley, AZ"],
-  description:
-    "Private soccer training in Gilbert and Mesa for ages 8–16. 1-on-1 and small group sessions scheduled by text.",
-  telephone: "+17206122979",
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -89,12 +78,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(localBusinessJsonLd),
-          }}
-        />
         {children}
         <Analytics />
       </body>
