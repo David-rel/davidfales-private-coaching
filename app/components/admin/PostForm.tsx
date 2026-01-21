@@ -103,7 +103,8 @@ export default function PostForm({
         const { url } = await res.json();
         setFormData((prev) => ({ ...prev, featured_image_url: url }));
       } else {
-        alert("Failed to upload image");
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to upload image");
       }
     } catch (error) {
       console.error("Upload error:", error);

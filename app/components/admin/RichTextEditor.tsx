@@ -52,7 +52,8 @@ export default function RichTextEditor({
           const { url } = await res.json();
           editor.chain().focus().setImage({ src: url }).run();
         } else {
-          alert("Failed to upload image");
+          const data = await res.json().catch(() => ({}));
+          alert(data.error || "Failed to upload image");
         }
       } catch (error) {
         console.error("Upload error:", error);
