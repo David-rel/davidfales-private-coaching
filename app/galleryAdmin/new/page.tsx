@@ -1,6 +1,8 @@
 import AuthWrapper from "../AuthWrapper";
 import PhotoForm from "@/app/components/admin/PhotoForm";
 
+export const dynamic = "force-dynamic";
+
 export default function NewPhotoPage() {
   return (
     <AuthWrapper>

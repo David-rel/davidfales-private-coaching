@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPublishedPhotos } from "@/app/lib/db/queries";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     // Get all published photos
@@ -21,5 +23,3 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Revalidate every 5 minutes
-export const revalidate = 300;

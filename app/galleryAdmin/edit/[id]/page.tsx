@@ -3,6 +3,8 @@ import PhotoForm from "@/app/components/admin/PhotoForm";
 import { getPhotoById } from "@/app/lib/db/queries";
 import { notFound } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 export default async function EditPhotoPage({
   params,
 }: {
