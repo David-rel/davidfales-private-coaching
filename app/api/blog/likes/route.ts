@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { toggleLike } from '@/app/lib/db/queries';
 import { getClientIp } from '@/app/lib/utils/ip';
 
+export const dynamic = 'force-dynamic';
+
 // POST toggle like
 export async function POST(request: NextRequest) {
   try {

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCommentsByPostId, createComment } from "@/app/lib/db/queries";
 
+export const dynamic = "force-dynamic";
+
 // GET comments for a post
 export async function GET(request: NextRequest) {
   try {

@@ -3,6 +3,8 @@ import { put } from '@vercel/blob';
 import { cookies } from 'next/headers';
 import { verifySessionToken } from '@/app/lib/auth/adminAuth';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     // Verify admin authentication

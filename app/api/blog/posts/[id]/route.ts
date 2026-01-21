@@ -3,6 +3,8 @@ import { cookies } from 'next/headers';
 import { verifySessionToken } from '@/app/lib/auth/adminAuth';
 import { getPostById, updatePost, deletePost, checkSlugExists } from '@/app/lib/db/queries';
 
+export const dynamic = 'force-dynamic';
+
 // GET single post by ID
 export async function GET(
   request: NextRequest,

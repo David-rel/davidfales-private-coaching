@@ -3,6 +3,8 @@ import { cookies } from 'next/headers';
 import { verifySessionToken } from '@/app/lib/auth/adminAuth';
 import { getPublishedPosts, getAllPostsForAdmin, createPost, checkSlugExists } from '@/app/lib/db/queries';
 
+export const dynamic = 'force-dynamic';
+
 // GET all posts (public or admin)
 export async function GET(request: NextRequest) {
   try {
