@@ -939,157 +939,243 @@ const Home = () => {
 
       {/* Pricing & Scheduling Section */}
       <section id="pricing" className="py-20 px-6 bg-white">
-        <div className="container mx-auto max-w-4xl">
+        <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Pricing & Scheduling
+              Training Packages & Options
             </h2>
             <p className="text-xl text-gray-600">
-              Flexible scheduling to fit your busy life
+              Choose the commitment level that works best for your player
             </p>
           </div>
 
-          {/* Why This Pricing Works */}
+          {/* Package Options */}
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
+            {/* 12-Week Package - Most Popular */}
+            <div className="bg-linear-to-br from-emerald-600 to-emerald-700 p-8 rounded-2xl shadow-xl border-4 border-emerald-400 relative transform hover:scale-105 transition-all duration-300">
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <span className="bg-yellow-400 text-gray-900 px-4 py-1 rounded-full text-sm font-bold shadow-lg">
+                  BEST VALUE
+                </span>
+              </div>
+              <div className="text-center text-white">
+                <div className="text-5xl mb-3">🏆</div>
+                <h3 className="text-3xl font-bold mb-3">12-Week Package</h3>
+                <p className="text-emerald-100 mb-6 leading-relaxed">
+                  Maximum progress and consistency. Lowest per-session rate.
+                </p>
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 mb-6">
+                  <p className="text-2xl font-bold mb-2">Best Per-Session Rate</p>
+                  <p className="text-emerald-100 text-sm">
+                    Commitment = Better results + better pricing
+                  </p>
+                </div>
+                <ul className="space-y-3 text-left">
+                  <li className="flex items-start">
+                    <span className="text-yellow-300 mr-2 text-xl">✓</span>
+                    <span className="text-emerald-50">Real skill development takes time</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-yellow-300 mr-2 text-xl">✓</span>
+                    <span className="text-emerald-50">Build lasting habits and technique</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-yellow-300 mr-2 text-xl">✓</span>
+                    <span className="text-emerald-50">Track meaningful progress over time</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-yellow-300 mr-2 text-xl">✓</span>
+                    <span className="text-emerald-50">Priority scheduling</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* 6-Week Package */}
+            <div className="bg-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200 hover:border-emerald-400 transition-all duration-300">
+              <div className="text-center">
+                <div className="text-5xl mb-3">📈</div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">6-Week Package</h3>
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Great for focused improvement on specific skills.
+                </p>
+                <div className="bg-emerald-50 rounded-xl p-4 mb-6">
+                  <p className="text-xl font-bold text-gray-900 mb-1">Better Rate</p>
+                  <p className="text-gray-600 text-sm">
+                    Solid commitment for noticeable results
+                  </p>
+                </div>
+                <ul className="space-y-3 text-left">
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2 text-xl">✓</span>
+                    <span className="text-gray-700">Focus on 1-2 key areas</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2 text-xl">✓</span>
+                    <span className="text-gray-700">See clear improvement</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2 text-xl">✓</span>
+                    <span className="text-gray-700">Progress tracking included</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* 4-Week or Session-to-Session */}
+            <div className="bg-white p-8 rounded-2xl shadow-lg border-2 border-gray-200">
+              <div className="text-center">
+                <div className="text-5xl mb-3">📅</div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">4-Week Package or Week-to-Week</h3>
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Flexible option to try training or work around busy schedules.
+                </p>
+                <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                  <p className="text-xl font-bold text-gray-900 mb-1">Standard Rate</p>
+                  <p className="text-gray-600 text-sm">
+                    Maximum flexibility, less commitment
+                  </p>
+                </div>
+                <ul className="space-y-3 text-left">
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2 text-xl">✓</span>
+                    <span className="text-gray-700">Test out training first</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2 text-xl">✓</span>
+                    <span className="text-gray-700">Schedule week by week</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-600 mr-2 text-xl">✓</span>
+                    <span className="text-gray-700">No long-term commitment</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Training Format & Pricing Range */}
           <div className="bg-linear-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200 mb-12">
             <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-              Why This Pricing Structure Works
+              Training Format & Pricing
+            </h3>
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="bg-white p-6 rounded-xl shadow-md border border-emerald-100">
+                <div className="flex items-center mb-4">
+                  <div className="text-4xl mr-3">👤</div>
+                  <h4 className="text-xl font-bold text-gray-900">1-on-1 Private Sessions</h4>
+                </div>
+                <p className="text-gray-700 mb-4 leading-relaxed">
+                  Maximum individual attention. Fully customized to your player's needs and goals.
+                </p>
+                <div className="bg-emerald-50 rounded-lg p-4">
+                  <p className="text-gray-900 font-semibold">Sessions range from $60-$80 based on package choice</p>
+                  <p className="text-gray-600 text-sm mt-2">12-week package = lowest rate per session</p>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-xl shadow-md border border-emerald-100">
+                <div className="flex items-center mb-4">
+                  <div className="text-4xl mr-3">👥</div>
+                  <h4 className="text-xl font-bold text-gray-900">Small Group Sessions</h4>
+                </div>
+                <p className="text-gray-700 mb-4 leading-relaxed">
+                  2-7 players. Great for teammates or friends. Game-like pressure with focused coaching.
+                </p>
+                <div className="bg-emerald-50 rounded-lg p-4">
+                  <p className="text-gray-900 font-semibold">Sessions range from $50-$70 based on package and group size</p>
+                  <p className="text-gray-600 text-sm mt-2">Cost split among families</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Why 12-Week Packages Work Best */}
+          <div className="bg-linear-to-br from-gray-900 to-gray-800 p-8 md:p-10 rounded-2xl shadow-2xl border-2 border-gray-700 mb-12">
+            <h3 className="text-3xl font-bold text-white mb-6 text-center">
+              Why 12 Weeks Is the Best Investment
             </h3>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="text-center">
-                <div className="text-4xl mb-3">👤</div>
-                <h4 className="font-bold text-gray-900 mb-2">
-                  Private Sessions
-                </h4>
-                <p className="text-gray-700 text-sm leading-relaxed">
-                  Small groups (max 4 players) ensure every player gets focused
-                  attention. The pricing encourages small groups where I can
-                  actually coach, not just manage.
+                <div className="text-5xl mb-3">🧠</div>
+                <h4 className="text-xl font-bold text-white mb-3">Skill Development Takes Time</h4>
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  Real technique changes don't happen in 2-3 sessions. Your player needs consistent repetition to build muscle memory and confidence.
                 </p>
               </div>
               <div className="text-center">
-                <div className="text-4xl mb-3">📊</div>
+                <div className="text-5xl mb-3">📊</div>
+                <h4 className="text-xl font-bold text-white mb-3">Measurable Progress</h4>
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  12 weeks gives us time to test, train, and retest. You'll see actual improvement in skill benchmarks, not just "feeling better."
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="text-5xl mb-3">💪</div>
+                <h4 className="text-xl font-bold text-white mb-3">Build Lasting Habits</h4>
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  Consistency builds confidence. Players who commit to 12 weeks develop routines and mindsets that carry over to games and practice.
+                </p>
+              </div>
+            </div>
+            <div className="mt-8 bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <p className="text-white text-center text-lg font-semibold mb-2">
+                🎯 Parents who commit to 12 weeks see the most dramatic improvement
+              </p>
+              <p className="text-gray-300 text-center text-sm">
+                Short-term training can help, but real development requires time and repetition.
+              </p>
+            </div>
+          </div>
+
+          {/* What's Included */}
+          <div className="bg-white p-8 rounded-2xl shadow-xl border-2 border-emerald-200 mb-10">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+              Every Package Includes
+            </h3>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="text-4xl mb-3">⚽</div>
                 <h4 className="font-bold text-gray-900 mb-2">
-                  Data Collection
+                  1-Hour Sessions
                 </h4>
                 <p className="text-gray-700 text-sm leading-relaxed">
-                  With smaller groups, I can properly track each player's
-                  progress through skill tests, measurements, and benchmarks.
-                  You actually see improvement.
+                  Ball-based technical training. Every minute on the ball, maximum touches, real improvement.
                 </p>
               </div>
               <div className="text-center">
                 <div className="text-4xl mb-3">📱</div>
                 <h4 className="font-bold text-gray-900 mb-2">
-                  Player Dashboards
+                  Player Dashboard Access
                 </h4>
                 <p className="text-gray-700 text-sm leading-relaxed">
-                  Each player gets their own dashboard with test results, goals,
-                  and progress history. Small groups make this meaningful, not
-                  overwhelming.
+                  Track test results, goals, and progress over time. Parents see clear improvement.
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl mb-3">📈</div>
+                <h4 className="font-bold text-gray-900 mb-2">
+                  Progress Plans
+                </h4>
+                <p className="text-gray-700 text-sm leading-relaxed">
+                  Simple benchmarks after each session so you know exactly what to work on next.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-white p-8 rounded-2xl shadow-xl border-2 border-emerald-200">
-              <h3 className="text-3xl font-bold text-gray-900 mb-6 text-center">
-                Pricing
-              </h3>
-
-              <div className="space-y-3 mb-8">
-                <div className="flex justify-between items-start py-3 border-b border-gray-200">
-                  <div>
-                    <div className="font-bold text-gray-900 text-lg">
-                      1-on-1 Session
-                    </div>
-                    <div className="text-gray-600 text-sm mt-1">
-                      Private individual training
-                    </div>
-                  </div>
-                  <div className="text-2xl font-bold text-emerald-600 ml-4">
-                    $60
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-start py-3 border-b border-gray-200">
-                  <div>
-                    <div className="font-bold text-gray-900 text-lg">
-                      2 Players
-                    </div>
-                    <div className="text-gray-600 text-sm mt-1">
-                      Split between both families ($40 each)
-                    </div>
-                  </div>
-                  <div className="text-2xl font-bold text-emerald-600 ml-4">
-                    $80
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-start py-3 border-b border-gray-200">
-                  <div>
-                    <div className="font-bold text-gray-900 text-lg">
-                      3 Players
-                    </div>
-                    <div className="text-gray-600 text-sm mt-1">
-                      Small group training
-                    </div>
-                  </div>
-                  <div className="text-2xl font-bold text-emerald-600 ml-4">
-                    $90
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-start py-3">
-                  <div>
-                    <div className="font-bold text-gray-900 text-lg">
-                      4 Players
-                    </div>
-                    <div className="text-gray-600 text-sm mt-1">
-                      Maximum group size
-                    </div>
-                  </div>
-                  <div className="text-2xl font-bold text-emerald-600 ml-4">
-                    $100
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-emerald-50 rounded-xl p-4 mb-4">
-                <div className="space-y-2">
-                  <div className="flex items-center text-gray-700">
-                    <span className="text-emerald-600 mr-2 text-lg">✓</span>
-                    <span className="text-sm">1-hour training sessions</span>
-                  </div>
-                  <div className="flex items-center text-gray-700">
-                    <span className="text-emerald-600 mr-2 text-lg">✓</span>
-                    <span className="text-sm">
-                      Ball-based technical training
-                    </span>
-                  </div>
-                  <div className="flex items-center text-gray-700">
-                    <span className="text-emerald-600 mr-2 text-lg">✓</span>
-                    <span className="text-sm">
-                      Simple progress plan after sessions
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <p className="text-gray-500 text-xs text-center">
-                Payment and details confirmed after we pick a time.
-              </p>
-            </div>
-
-            <div className="bg-linear-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
-              <div className="text-5xl mb-4 text-center">📅</div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-4 text-center">
+          {/* Scheduling Section */}
+          <div className="bg-linear-to-br from-emerald-50 to-white p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
+            <div className="text-center mb-6">
+              <div className="text-5xl mb-4">📅</div>
+              <h3 className="text-3xl font-bold text-gray-900 mb-4">
                 Flexible Scheduling
               </h3>
-              <p className="text-gray-700 leading-relaxed text-lg mb-6">
-                Sessions are scheduled directly by text. Times are flexible and
-                based on availability.
+              <p className="text-gray-700 leading-relaxed text-lg mb-6 max-w-2xl mx-auto">
+                Sessions are scheduled directly by text. Times are flexible and based on availability.
               </p>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
               <div className="space-y-3">
                 <div className="flex items-center text-gray-700">
                   <span className="text-2xl mr-3 text-emerald-600">✓</span>
@@ -1099,38 +1185,43 @@ const Home = () => {
                   <span className="text-2xl mr-3 text-emerald-600">✓</span>
                   <span>Weekend sessions available</span>
                 </div>
+              </div>
+              <div className="space-y-3">
                 <div className="flex items-center text-gray-700">
                   <span className="text-2xl mr-3 text-emerald-600">✓</span>
                   <span>One-on-one or small groups</span>
                 </div>
                 <div className="flex items-center text-gray-700">
                   <span className="text-2xl mr-3 text-emerald-600">✓</span>
-                  <span>Schedule via text, call, WhatsApp, or email</span>
+                  <span>Schedule via text, call, or WhatsApp</span>
                 </div>
               </div>
-              <div className="mt-8 flex flex-wrap gap-3 justify-center">
-                <a
-                  href={smsHref}
-                  className="inline-flex items-center justify-center bg-emerald-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-emerald-700 transition-colors shadow"
-                >
-                  Text
-                </a>
-                <a
-                  href={waHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center justify-center bg-white text-emerald-700 px-6 py-3 rounded-full font-semibold border-2 border-emerald-200 hover:bg-emerald-50 transition-colors"
-                >
-                  WhatsApp
-                </a>
-                <a
-                  href={telHref}
-                  className="inline-flex items-center justify-center bg-white text-gray-800 px-6 py-3 rounded-full font-semibold border-2 border-gray-200 hover:border-gray-300 transition-colors"
-                >
-                  Call
-                </a>
-              </div>
             </div>
+            <div className="mt-8 flex flex-wrap gap-3 justify-center">
+              <a
+                href={smsHref}
+                className="inline-flex items-center justify-center bg-emerald-600 text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-emerald-700 transition-colors shadow-lg"
+              >
+                Text to discuss packages
+              </a>
+              <a
+                href={waHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center bg-white text-emerald-700 px-8 py-4 rounded-full font-semibold text-lg border-2 border-emerald-200 hover:bg-emerald-50 transition-colors shadow"
+              >
+                WhatsApp
+              </a>
+              <a
+                href={telHref}
+                className="inline-flex items-center justify-center bg-white text-gray-800 px-8 py-4 rounded-full font-semibold text-lg border-2 border-gray-200 hover:border-gray-300 transition-colors shadow"
+              >
+                Call
+              </a>
+            </div>
+            <p className="text-gray-500 text-sm text-center mt-6">
+              We'll discuss the best package for your player's goals and your schedule. Pricing confirmed when we book.
+            </p>
           </div>
         </div>
       </section>
