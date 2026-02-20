@@ -6,6 +6,7 @@ import Link from "next/link";
 import MainHeader from "@/app/components/layout/MainHeader";
 import MainFooter from "@/app/components/layout/MainFooter";
 import FeaturedPhotos from "@/app/components/home/FeaturedPhotos";
+import GroupSessionsPreview from "@/app/components/home/GroupSessionsPreview";
 import BlogCard from "@/app/components/blog/BlogCard";
 import { BlogPostListItem } from "@/app/types/blog";
 
@@ -1617,6 +1618,8 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      <GroupSessionsPreview />
 
       {/* Blog Section */}
       <section

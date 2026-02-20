@@ -52,6 +52,12 @@ export default function MainHeader() {
                 Pricing
               </a>
               <a
+                href="/group-sessions"
+                className="hover:text-emerald-200 transition-colors duration-200 font-medium text-sm"
+              >
+                Group sessions
+              </a>
+              <a
                 href="/#faq"
                 className="hover:text-emerald-200 transition-colors duration-200 font-medium text-sm"
               >
@@ -167,6 +173,13 @@ export default function MainHeader() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Pricing
+              </a>
+              <a
+                href="/group-sessions"
+                className="hover:text-emerald-200 transition-colors duration-200 font-medium text-base py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Group sessions
               </a>
               <a
                 href="/#faq"

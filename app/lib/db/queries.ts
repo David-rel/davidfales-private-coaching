@@ -7,6 +7,10 @@ import {
   BlogPostWithCounts,
 } from "@/app/types/blog";
 import { Photo, PhotoListItem } from "@/app/types/gallery";
+import {
+  GroupSessionWithAvailability,
+  PlayerSignup,
+} from "@/app/types/groupSessions";
 import crypto from "crypto";
 
 // ========== BLOG POSTS ==========
@@ -428,7 +432,7 @@ export async function updatePhoto(
   data: Partial<Photo>
 ): Promise<Photo | null> {
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: unknown[] = [];
   let paramCount = 1;
 
   // Build dynamic update query
@@ -468,4 +472,127 @@ export async function checkPhotoSlugExists(
   const params = excludeId ? [slug, excludeId] : [slug];
   const result = await pool.query(query, params);
   return result.rows.length > 0;
+}
+
+// ========== GROUP SESSIONS ==========
+
+export async function getUpcomingGroupSessions(
+  limit = 50
+): Promise<GroupSessionWithAvailability[]> {
+  const result = await pool.query(
+    `SELECT
+      gs.*,
+      COALESCE(ps.paid_signups, 0)::int AS paid_signups,
+      GREATEST(gs.max_players - COALESCE(ps.paid_signups, 0), 0)::int AS spots_left
+     FROM group_sessions gs
+     LEFT JOIN (
+      SELECT group_session_id, COUNT(*)::int AS paid_signups
+      FROM player_signups
+      WHERE has_paid = true
+      GROUP BY group_session_id
+     ) ps ON ps.group_session_id = gs.id
+     WHERE gs.session_date >= NOW()
+     ORDER BY gs.session_date ASC
+     LIMIT $1`,
+    [limit]
+  );
+  return result.rows;
+}
+
+export async function getGroupSessionById(
+  id: number
+): Promise<GroupSessionWithAvailability | null> {
+  const result = await pool.query(
+    `SELECT
+      gs.*,
+      COALESCE(ps.paid_signups, 0)::int AS paid_signups,
+      GREATEST(gs.max_players - COALESCE(ps.paid_signups, 0), 0)::int AS spots_left
+     FROM group_sessions gs
+     LEFT JOIN (
+      SELECT group_session_id, COUNT(*)::int AS paid_signups
+      FROM player_signups
+      WHERE has_paid = true
+      GROUP BY group_session_id
+     ) ps ON ps.group_session_id = gs.id
+     WHERE gs.id = $1`,
+    [id]
+  );
+
+  return result.rows[0] || null;
+}
+
+export async function createPlayerSignup(
+  data: Pick<
+    PlayerSignup,
+    | "group_session_id"
+    | "first_name"
+    | "last_name"
+    | "emergency_contact"
+    | "contact_email"
+  > &
+    Partial<Pick<PlayerSignup, "contact_phone" | "foot" | "team" | "notes">>
+): Promise<PlayerSignup> {
+  const result = await pool.query(
+    `INSERT INTO player_signups (
+      group_session_id, first_name, last_name, emergency_contact, contact_phone, contact_email, foot, team, notes, has_paid
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, false)
+    RETURNING *`,
+    [
+      data.group_session_id,
+      data.first_name,
+      data.last_name,
+      data.emergency_contact,
+      data.contact_phone || null,
+      data.contact_email,
+      data.foot || null,
+      data.team || null,
+      data.notes || null,
+    ]
+  );
+
+  return result.rows[0];
+}
+
+export async function updatePlayerSignupCheckout(
+  signupId: number,
+  checkoutSessionId: string,
+  paymentIntentId?: string | null
+): Promise<void> {
+  await pool.query(
+    `UPDATE player_signups
+     SET stripe_checkout_session_id = $2,
+         stripe_payment_intent_id = COALESCE($3, stripe_payment_intent_id),
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id = $1`,
+    [signupId, checkoutSessionId, paymentIntentId || null]
+  );
+}
+
+export async function markPlayerSignupPaidByCheckoutSession(
+  checkoutSessionId: string,
+  updates: {
+    paymentIntentId?: string | null;
+    chargeId?: string | null;
+    receiptUrl?: string | null;
+  }
+): Promise<PlayerSignup | null> {
+  const result = await pool.query(
+    `UPDATE player_signups
+     SET has_paid = true,
+         stripe_payment_intent_id = COALESCE($2, stripe_payment_intent_id),
+         stripe_charge_id = COALESCE($3, stripe_charge_id),
+         stripe_receipt_url = COALESCE($4, stripe_receipt_url),
+         updated_at = CURRENT_TIMESTAMP
+     WHERE stripe_checkout_session_id = $1
+       AND has_paid = false
+     RETURNING *`,
+    [
+      checkoutSessionId,
+      updates.paymentIntentId || null,
+      updates.chargeId || null,
+      updates.receiptUrl || null,
+    ]
+  );
+
+  return result.rows[0] || null;
 }

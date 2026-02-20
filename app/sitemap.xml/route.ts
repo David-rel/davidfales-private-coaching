@@ -1,5 +1,8 @@
-import type { NextRequest } from "next/server";
-import { getPublishedPosts, getPublishedPhotos } from "@/app/lib/db/queries";
+import {
+  getPublishedPosts,
+  getPublishedPhotos,
+  getUpcomingGroupSessions,
+} from "@/app/lib/db/queries";
 
 type ChangeFreq =
   | "always"
@@ -48,12 +51,13 @@ ${items}
 </urlset>`;
 }
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   const today = toIsoDate(new Date());
 
   // Get all published blog posts and photos
   const posts = await getPublishedPosts(1000, 0);
   const photos = await getPublishedPhotos(1000, 0);
+  const groupSessions = await getUpcomingGroupSessions(1000);
 
   const urls: SitemapUrl[] = [
     {
@@ -64,6 +68,12 @@ export async function GET(_req: NextRequest) {
     },
     {
       loc: `${SITE_URL}/mesa-gilbert-private-soccer-training`,
+      lastmod: today,
+      changefreq: "weekly",
+      priority: 0.9,
+    },
+    {
+      loc: `${SITE_URL}/group-sessions`,
       lastmod: today,
       changefreq: "weekly",
       priority: 0.9,
@@ -93,6 +103,13 @@ export async function GET(_req: NextRequest) {
       lastmod: toIsoDate(new Date(photo.created_at)),
       changefreq: "monthly" as ChangeFreq,
       priority: 0.6,
+    })),
+    // Add all upcoming group session detail pages
+    ...groupSessions.map((session) => ({
+      loc: `${SITE_URL}/group-sessions/${session.id}`,
+      lastmod: toIsoDate(new Date(session.updated_at)),
+      changefreq: "weekly" as ChangeFreq,
+      priority: 0.8,
     })),
   ];
 
