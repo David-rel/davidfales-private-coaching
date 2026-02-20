@@ -7,6 +7,7 @@ import {
 import { getStripe } from "@/app/lib/stripe";
 
 export const dynamic = "force-dynamic";
+const GROUP_TIME_ZONE = "America/Phoenix";
 
 type CheckoutBody = {
   groupSessionId?: number;
@@ -34,6 +35,7 @@ function formatTimeRange(startInput: string, endInput: string | null) {
   const format = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
+    timeZone: GROUP_TIME_ZONE,
   });
   return `${format.format(start)} - ${format.format(end)}`;
 }
@@ -141,6 +143,7 @@ export async function POST(request: NextRequest) {
               description: `${new Date(session.session_date).toLocaleString("en-US", {
                 dateStyle: "full",
                 timeStyle: "short",
+                timeZone: GROUP_TIME_ZONE,
               })} (${formatTimeRange(session.session_date, session.session_date_end)})${
                 session.location ? ` • ${session.location}` : ""
               }`,

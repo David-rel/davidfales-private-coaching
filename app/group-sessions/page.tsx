@@ -4,6 +4,7 @@ import MainFooter from "@/app/components/layout/MainFooter";
 import { getUpcomingGroupSessions } from "@/app/lib/db/queries";
 
 export const dynamic = "force-dynamic";
+const GROUP_TIME_ZONE = "America/Phoenix";
 
 const comparisonRows = [
   {
@@ -31,6 +32,7 @@ function formatSessionDate(input: string) {
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    timeZone: GROUP_TIME_ZONE,
   }).format(new Date(input));
 }
 
@@ -44,6 +46,7 @@ function formatSessionTimeRange(startInput: string, endInput: string | null) {
   const format = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
+    timeZone: GROUP_TIME_ZONE,
   });
   return `${format.format(start)} - ${format.format(end)}`;
 }
@@ -62,9 +65,10 @@ function formatSpotsRemaining(spots: number) {
 }
 
 function getWeekdayLabel(input: string) {
-  return new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(
-    new Date(input)
-  );
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    timeZone: GROUP_TIME_ZONE,
+  }).format(new Date(input));
 }
 
 export default async function GroupSessionsPage() {

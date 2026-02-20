@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+const GROUP_TIME_ZONE = "America/Phoenix";
+
 type GroupSessionPreview = {
   id: number;
   title: string;
@@ -24,6 +26,7 @@ function formatSessionDateOnly(input: string) {
     month: "short",
     day: "numeric",
     weekday: "short",
+    timeZone: GROUP_TIME_ZONE,
   }).format(new Date(input));
 }
 
@@ -33,6 +36,7 @@ function formatSessionTimeRange(startInput: string, endInput: string | null) {
   const format = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
+    timeZone: GROUP_TIME_ZONE,
   });
   return `${format.format(start)} - ${format.format(end)}`;
 }

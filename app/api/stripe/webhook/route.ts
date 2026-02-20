@@ -8,6 +8,7 @@ import {
 } from "@/app/lib/db/queries";
 
 export const dynamic = "force-dynamic";
+const GROUP_TIME_ZONE = "America/Phoenix";
 
 function addMinutes(input: string | Date, minutes: number) {
   return new Date(new Date(input).getTime() + minutes * 60_000);
@@ -19,6 +20,7 @@ function formatSessionDate(input: string) {
     month: "long",
     day: "numeric",
     year: "numeric",
+    timeZone: GROUP_TIME_ZONE,
   }).format(new Date(input));
 }
 
@@ -28,6 +30,7 @@ function formatSessionTimeRange(startInput: string, endInput: string | null) {
   const format = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
+    timeZone: GROUP_TIME_ZONE,
   });
   return `${format.format(start)} - ${format.format(end)}`;
 }
