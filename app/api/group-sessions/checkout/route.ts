@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 const GROUP_TIME_ZONE = "America/Phoenix";
 
 type CheckoutBody = {
-  groupSessionId?: number;
+  groupSessionId?: number | string;
   firstName?: string;
   lastName?: string;
   emergencyContact?: string;
@@ -23,6 +23,38 @@ type CheckoutBody = {
 
 function cleanText(input: unknown) {
   return (input || "").toString().trim();
+}
+
+function getSessionIdFromPath(pathname: string) {
+  const match = pathname.match(/\/group-sessions\/(\d+)(?:\/)?$/);
+  if (!match) return null;
+  return Number(match[1]);
+}
+
+function parseGroupSessionInput(input: unknown) {
+  const raw = cleanText(input);
+  if (!raw) return { id: null as number | null, query: null as URLSearchParams | null };
+
+  const fromRaw = Number(raw);
+  if (Number.isInteger(fromRaw) && fromRaw > 0) {
+    return { id: fromRaw, query: null as URLSearchParams | null };
+  }
+
+  try {
+    const url = new URL(raw);
+    const id = getSessionIdFromPath(url.pathname);
+    return { id, query: url.searchParams };
+  } catch {
+    return { id: null as number | null, query: null as URLSearchParams | null };
+  }
+}
+
+function cleanTextFromBodyOrQuery(
+  bodyValue: unknown,
+  query: URLSearchParams | null,
+  queryKey: string
+) {
+  return cleanText(bodyValue || query?.get(queryKey) || "");
 }
 
 function addMinutes(input: string | Date, minutes: number) {
@@ -52,15 +84,47 @@ export async function POST(request: NextRequest) {
 
     const body = (await request.json()) as CheckoutBody;
 
-    const groupSessionId = Number(body.groupSessionId);
-    const firstName = cleanText(body.firstName);
-    const lastName = cleanText(body.lastName);
-    const emergencyContact = cleanText(body.emergencyContact);
-    const contactPhone = cleanText(body.contactPhone);
-    const contactEmail = cleanText(body.contactEmail).toLowerCase();
-    const foot = cleanText(body.foot);
-    const team = cleanText(body.team);
-    const notes = cleanText(body.notes);
+    const parsedGroupSession = parseGroupSessionInput(body.groupSessionId);
+    const groupSessionId = parsedGroupSession.id;
+    const firstName = cleanTextFromBodyOrQuery(
+      body.firstName,
+      parsedGroupSession.query,
+      "kidFirstName"
+    );
+    const lastName = cleanTextFromBodyOrQuery(
+      body.lastName,
+      parsedGroupSession.query,
+      "kidLastName"
+    );
+    const emergencyContact = cleanTextFromBodyOrQuery(
+      body.emergencyContact,
+      parsedGroupSession.query,
+      "parentName"
+    );
+    const contactPhone = cleanTextFromBodyOrQuery(
+      body.contactPhone,
+      parsedGroupSession.query,
+      "phone"
+    );
+    const contactEmail = cleanTextFromBodyOrQuery(
+      body.contactEmail,
+      parsedGroupSession.query,
+      "email"
+    ).toLowerCase();
+    const foot = cleanTextFromBodyOrQuery(
+      body.foot,
+      parsedGroupSession.query,
+      "preferredFoot"
+    );
+    const team = cleanTextFromBodyOrQuery(body.team, parsedGroupSession.query, "team");
+    const notes = cleanTextFromBodyOrQuery(body.notes, parsedGroupSession.query, "notes");
+
+    if (groupSessionId === null) {
+      return NextResponse.json(
+        { error: "Invalid group session id" },
+        { status: 400 }
+      );
+    }
 
     if (!Number.isInteger(groupSessionId) || groupSessionId <= 0) {
       return NextResponse.json(
@@ -68,6 +132,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    const resolvedGroupSessionId = groupSessionId;
 
     if (!firstName || !lastName || !emergencyContact || !contactEmail) {
       return NextResponse.json(
@@ -82,7 +147,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const session = await getGroupSessionById(groupSessionId);
+    const session = await getGroupSessionById(resolvedGroupSessionId);
 
     if (!session) {
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
@@ -111,7 +176,7 @@ export async function POST(request: NextRequest) {
     }
 
     const signup = await createPlayerSignup({
-      group_session_id: groupSessionId,
+      group_session_id: resolvedGroupSessionId,
       first_name: firstName,
       last_name: lastName,
       emergency_contact: emergencyContact,

@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 type Props = {
   sessionId: number;
@@ -8,6 +9,7 @@ type Props = {
 };
 
 export default function SessionCheckoutForm({ sessionId, isFull }: Props) {
+  const searchParams = useSearchParams();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [emergencyContact, setEmergencyContact] = useState("");
@@ -18,6 +20,42 @@ export default function SessionCheckoutForm({ sessionId, isFull }: Props) {
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const kidFirstName = (searchParams.get("kidFirstName") || "").trim();
+    const kidLastName = (searchParams.get("kidLastName") || "").trim();
+    const preferredFoot = (searchParams.get("preferredFoot") || "").trim();
+    const teamName = (searchParams.get("team") || "").trim();
+    const playerNotes = (searchParams.get("notes") || "").trim();
+    const parentName = (searchParams.get("parentName") || "").trim();
+    const email = (searchParams.get("email") || "").trim();
+    const phone = (searchParams.get("phone") || "").trim();
+
+    if (kidFirstName) {
+      setFirstName((current) => current || kidFirstName);
+    }
+    if (kidLastName) {
+      setLastName((current) => current || kidLastName);
+    }
+    if (parentName) {
+      setEmergencyContact((current) => current || parentName);
+    }
+    if (email) {
+      setContactEmail((current) => current || email);
+    }
+    if (phone) {
+      setContactPhone((current) => current || phone);
+    }
+    if (preferredFoot) {
+      setFoot((current) => current || preferredFoot);
+    }
+    if (teamName) {
+      setTeam((current) => current || teamName);
+    }
+    if (playerNotes) {
+      setNotes((current) => current || playerNotes);
+    }
+  }, [searchParams]);
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
