@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   createPlayerSignup,
   getGroupSessionById,
+  provisionParentAndPlayerForGroupSignup,
   updatePlayerSignupCheckout,
 } from "@/app/lib/db/queries";
 import { getStripe } from "@/app/lib/stripe";
@@ -13,6 +14,7 @@ type CheckoutBody = {
   groupSessionId?: number | string;
   firstName?: string;
   lastName?: string;
+  birthday?: string;
   emergencyContact?: string;
   contactPhone?: string;
   contactEmail?: string;
@@ -55,6 +57,54 @@ function cleanTextFromBodyOrQuery(
   queryKey: string
 ) {
   return cleanText(bodyValue || query?.get(queryKey) || "");
+}
+
+function parseBirthday(input: unknown) {
+  const raw = cleanText(input);
+  if (!raw) return null;
+
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    const utcDate = new Date(Date.UTC(year, month - 1, day));
+    if (
+      utcDate.getUTCFullYear() !== year ||
+      utcDate.getUTCMonth() + 1 !== month ||
+      utcDate.getUTCDate() !== day
+    ) {
+      return null;
+    }
+    return { year, month, day, dateOnly: raw };
+  }
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  const year = parsed.getUTCFullYear();
+  const month = parsed.getUTCMonth() + 1;
+  const day = parsed.getUTCDate();
+  const dateOnly = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  return { year, month, day, dateOnly };
+}
+
+function getAgeFromBirthdayParts(birthday: {
+  year: number;
+  month: number;
+  day: number;
+}) {
+  const now = new Date();
+  let age = now.getFullYear() - birthday.year;
+  const monthDelta = now.getMonth() + 1 - birthday.month;
+  if (
+    monthDelta < 0 ||
+    (monthDelta === 0 && now.getDate() < birthday.day)
+  ) {
+    age -= 1;
+  }
+  if (!Number.isInteger(age) || age < 1 || age > 99) return null;
+  return age;
 }
 
 function addMinutes(input: string | Date, minutes: number) {
@@ -118,6 +168,13 @@ export async function POST(request: NextRequest) {
     );
     const team = cleanTextFromBodyOrQuery(body.team, parsedGroupSession.query, "team");
     const notes = cleanTextFromBodyOrQuery(body.notes, parsedGroupSession.query, "notes");
+    const birthday = cleanTextFromBodyOrQuery(
+      body.birthday,
+      parsedGroupSession.query,
+      "birthday"
+    );
+    const parsedBirthday = parseBirthday(birthday);
+    const playerAge = parsedBirthday ? getAgeFromBirthdayParts(parsedBirthday) : null;
 
     if (groupSessionId === null) {
       return NextResponse.json(
@@ -143,6 +200,18 @@ export async function POST(request: NextRequest) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
       return NextResponse.json(
         { error: "A valid contact email is required" },
+        { status: 400 }
+      );
+    }
+    if (!parsedBirthday) {
+      return NextResponse.json(
+        { error: "A valid birthday is required" },
+        { status: 400 }
+      );
+    }
+    if (playerAge === null) {
+      return NextResponse.json(
+        { error: "A valid player age is required" },
         { status: 400 }
       );
     }
@@ -175,6 +244,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const crmContextNote = `Session booked via group checkout (${session.title} on ${new Date(
+      session.session_date
+    ).toLocaleString("en-US", {
+      dateStyle: "full",
+      timeStyle: "short",
+      timeZone: GROUP_TIME_ZONE,
+    })})`;
+
+    const accountProvision = await provisionParentAndPlayerForGroupSignup({
+      contactEmail,
+      contactPhone: contactPhone || null,
+      parentName: emergencyContact || null,
+      firstName,
+      lastName,
+      playerAge,
+      playerBirthdate: parsedBirthday.dateOnly,
+      foot: foot || null,
+      team: team || null,
+      notes: notes || null,
+      crmContextNote,
+    });
+
     const signup = await createPlayerSignup({
       group_session_id: resolvedGroupSessionId,
       first_name: firstName,
@@ -182,6 +273,7 @@ export async function POST(request: NextRequest) {
       emergency_contact: emergencyContact,
       contact_phone: contactPhone || null,
       contact_email: contactEmail,
+      birthday: parsedBirthday.dateOnly,
       foot: foot || null,
       team: team || null,
       notes: notes || null,
@@ -219,6 +311,9 @@ export async function POST(request: NextRequest) {
       metadata: {
         group_session_id: String(session.id),
         player_signup_id: String(signup.id),
+        parent_portal_email: accountProvision.parentEmail,
+        parent_portal_password: accountProvision.generatedPassword || "",
+        parent_portal_is_new: accountProvision.parentWasCreated ? "true" : "false",
       },
     });
 

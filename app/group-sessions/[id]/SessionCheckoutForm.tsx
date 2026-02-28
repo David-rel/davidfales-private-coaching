@@ -8,10 +8,23 @@ type Props = {
   isFull: boolean;
 };
 
+function normalizeBirthdayForInput(input: string) {
+  const trimmed = input.trim();
+  if (!trimmed) return "";
+
+  const isoDateMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoDateMatch) return trimmed;
+
+  const birthday = new Date(trimmed);
+  if (Number.isNaN(birthday.getTime())) return "";
+  return birthday.toISOString().slice(0, 10);
+}
+
 export default function SessionCheckoutForm({ sessionId, isFull }: Props) {
   const searchParams = useSearchParams();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [birthday, setBirthday] = useState("");
   const [emergencyContact, setEmergencyContact] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [contactEmail, setContactEmail] = useState("");
@@ -30,12 +43,17 @@ export default function SessionCheckoutForm({ sessionId, isFull }: Props) {
     const parentName = (searchParams.get("parentName") || "").trim();
     const email = (searchParams.get("email") || "").trim();
     const phone = (searchParams.get("phone") || "").trim();
+    const birthdayParam = (searchParams.get("birthday") || "").trim();
+    const normalizedBirthday = normalizeBirthdayForInput(birthdayParam);
 
     if (kidFirstName) {
       setFirstName((current) => current || kidFirstName);
     }
     if (kidLastName) {
       setLastName((current) => current || kidLastName);
+    }
+    if (normalizedBirthday) {
+      setBirthday((current) => current || normalizedBirthday);
     }
     if (parentName) {
       setEmergencyContact((current) => current || parentName);
@@ -74,6 +92,7 @@ export default function SessionCheckoutForm({ sessionId, isFull }: Props) {
           groupSessionId: sessionId,
           firstName,
           lastName,
+          birthday,
           emergencyContact,
           contactPhone,
           contactEmail,
@@ -123,6 +142,17 @@ export default function SessionCheckoutForm({ sessionId, isFull }: Props) {
           <input
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
+            required
+            className="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 text-black placeholder:text-gray-500 caret-black outline-none focus:border-emerald-500"
+          />
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-semibold text-gray-700">Birthday *</span>
+          <input
+            type="date"
+            value={birthday}
+            onChange={(e) => setBirthday(e.target.value)}
             required
             className="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 text-black placeholder:text-gray-500 caret-black outline-none focus:border-emerald-500"
           />

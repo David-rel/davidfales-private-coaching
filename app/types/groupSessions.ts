@@ -26,6 +26,7 @@ export type PlayerSignup = {
   emergency_contact: string;
   contact_phone: string | null;
   contact_email: string;
+  birthday: string | null;
   foot: string | null;
   team: string | null;
   notes: string | null;

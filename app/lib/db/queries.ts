@@ -2,7 +2,6 @@ import { pool } from "../db";
 import {
   BlogPost,
   Comment,
-  Like,
   BlogPostListItem,
   BlogPostWithCounts,
 } from "@/app/types/blog";
@@ -12,6 +11,56 @@ import {
   PlayerSignup,
 } from "@/app/types/groupSessions";
 import crypto from "crypto";
+
+const PORTAL_PASSWORD_CHARSET =
+  "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+
+function cleanNullableText(input: string | null | undefined) {
+  const value = (input || "").trim();
+  return value || null;
+}
+
+function appendCrmNote(existingNote: string | null, noteEntry: string | null) {
+  const existing = cleanNullableText(existingNote);
+  const entry = cleanNullableText(noteEntry);
+
+  if (!entry) return existing;
+  if (!existing) return entry;
+  if (existing.toLowerCase().includes(entry.toLowerCase())) return existing;
+
+  return `${existing}\n${entry}`;
+}
+
+function buildPlayerCrmNoteEntry(params: {
+  contextNote: string | null;
+  playerName: string;
+  playerBirthdate: string | null;
+  playerAge: number;
+  teamLevel: string | null;
+  dominantFoot: string | null;
+  developmentNotes: string | null;
+}) {
+  const parts = [
+    params.contextNote,
+    `Player: ${params.playerName}`,
+    `Age: ${params.playerAge}`,
+    params.playerBirthdate ? `Birthday: ${params.playerBirthdate}` : null,
+    params.teamLevel ? `Team: ${params.teamLevel}` : null,
+    params.dominantFoot ? `Preferred foot: ${params.dominantFoot}` : null,
+    params.developmentNotes ? `Notes: ${params.developmentNotes}` : null,
+  ].filter(Boolean);
+
+  return parts.join(" | ");
+}
+
+function generatePortalPassword(length = 10) {
+  const bytes = crypto.randomBytes(length);
+  let password = "";
+  for (let i = 0; i < length; i += 1) {
+    password += PORTAL_PASSWORD_CHARSET[bytes[i] % PORTAL_PASSWORD_CHARSET.length];
+  }
+  return password;
+}
 
 // ========== BLOG POSTS ==========
 
@@ -521,6 +570,382 @@ export async function getGroupSessionById(
   return result.rows[0] || null;
 }
 
+export async function provisionParentAndPlayerForGroupSignup(data: {
+  contactEmail: string;
+  contactPhone?: string | null;
+  parentName?: string | null;
+  firstName: string;
+  lastName: string;
+  playerAge: number;
+  playerBirthdate?: string | null;
+  foot?: string | null;
+  team?: string | null;
+  notes?: string | null;
+  crmContextNote?: string | null;
+}): Promise<{
+  parentId: string;
+  playerId: string;
+  parentEmail: string;
+  parentWasCreated: boolean;
+  generatedPassword: string | null;
+}> {
+  const normalizedEmail = data.contactEmail.trim().toLowerCase();
+  if (!normalizedEmail) {
+    throw new Error("A contact email is required to create a parent account.");
+  }
+
+  const playerName = `${data.firstName.trim()} ${data.lastName.trim()}`.trim();
+  if (!playerName) {
+    throw new Error("Player name is required to create a player profile.");
+  }
+
+  const parentName = cleanNullableText(data.parentName);
+  const parentPhone = cleanNullableText(data.contactPhone);
+  const dominantFoot = cleanNullableText(data.foot);
+  const teamLevel = cleanNullableText(data.team);
+  const developmentNotes = cleanNullableText(data.notes);
+  const playerBirthdate = cleanNullableText(data.playerBirthdate);
+  const crmContextNote =
+    cleanNullableText(data.crmContextNote) || "Session booked via group checkout";
+
+  const parentCrmNoteEntry = [
+    crmContextNote,
+    `Parent: ${parentName || "N/A"}`,
+    `Email: ${normalizedEmail}`,
+    parentPhone ? `Phone: ${parentPhone}` : null,
+  ]
+    .filter(Boolean)
+    .join(" | ");
+
+  const playerCrmNoteEntry = buildPlayerCrmNoteEntry({
+    contextNote: crmContextNote,
+    playerName,
+    playerBirthdate,
+    playerAge: data.playerAge,
+    teamLevel,
+    dominantFoot,
+    developmentNotes,
+  });
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const existingParentResult = await client.query<{
+      id: string;
+      phone: string | null;
+      name: string | null;
+      crm_parent_id: number | null;
+    }>(
+      `SELECT id, phone, name, crm_parent_id
+       FROM parents
+       WHERE lower(email) = lower($1)
+       LIMIT 1`,
+      [normalizedEmail]
+    );
+
+    let parentId = "";
+    let parentWasCreated = false;
+    let generatedPassword: string | null = null;
+    let crmParentId: number | null = existingParentResult.rows[0]?.crm_parent_id || null;
+
+    if (existingParentResult.rows[0]) {
+      parentId = existingParentResult.rows[0].id;
+
+      if (parentName && !cleanNullableText(existingParentResult.rows[0].name)) {
+        await client.query(
+          `UPDATE parents
+           SET name = $2,
+               updated_at = CURRENT_TIMESTAMP
+           WHERE id = $1`,
+          [parentId, parentName]
+        );
+      }
+
+      if (parentPhone && !cleanNullableText(existingParentResult.rows[0].phone)) {
+        await client.query(
+          `UPDATE parents
+           SET phone = $2,
+               updated_at = CURRENT_TIMESTAMP
+           WHERE id = $1
+             AND NOT EXISTS (
+               SELECT 1
+               FROM parents p2
+               WHERE p2.phone = $2
+                 AND p2.id <> $1
+             )`,
+          [parentId, parentPhone]
+        );
+      }
+    } else {
+      generatedPassword = generatePortalPassword(10);
+
+      let phoneForInsert = parentPhone;
+      if (phoneForInsert) {
+        const phoneConflictResult = await client.query(
+          `SELECT id
+           FROM parents
+           WHERE phone = $1
+           LIMIT 1`,
+          [phoneForInsert]
+        );
+        if (phoneConflictResult.rows[0]) {
+          phoneForInsert = null;
+        }
+      }
+
+      const createdParentResult = await client.query<{ id: string }>(
+        `INSERT INTO parents (email, phone, name, password_hash)
+         VALUES ($1, $2, $3, crypt($4, gen_salt('bf', 10)))
+         RETURNING id`,
+        [normalizedEmail, phoneForInsert, parentName, generatedPassword]
+      );
+      parentId = createdParentResult.rows[0].id;
+      parentWasCreated = true;
+    }
+
+    if (!crmParentId) {
+      const existingCrmParentByEmail = await client.query<{ id: number }>(
+        `SELECT id
+         FROM crm_parents
+         WHERE lower(email) = lower($1)
+         ORDER BY id ASC
+         LIMIT 1`,
+        [normalizedEmail]
+      );
+
+      if (existingCrmParentByEmail.rows[0]) {
+        crmParentId = existingCrmParentByEmail.rows[0].id;
+      } else if (parentPhone) {
+        const existingCrmParentByPhone = await client.query<{ id: number }>(
+          `SELECT id
+           FROM crm_parents
+           WHERE phone = $1
+           ORDER BY id ASC
+           LIMIT 1`,
+          [parentPhone]
+        );
+        if (existingCrmParentByPhone.rows[0]) {
+          crmParentId = existingCrmParentByPhone.rows[0].id;
+        }
+      }
+    }
+
+    if (!crmParentId) {
+      const createdCrmParentResult = await client.query<{ id: number }>(
+        `INSERT INTO crm_parents (
+          name, email, phone, notes, last_activity_at, is_dead
+         ) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, false)
+         RETURNING id`,
+        [parentName || `${playerName} Parent`, normalizedEmail, parentPhone, parentCrmNoteEntry]
+      );
+      crmParentId = createdCrmParentResult.rows[0].id;
+    }
+
+    if (!crmParentId) {
+      throw new Error("Unable to create or locate CRM parent record.");
+    }
+    const resolvedCrmParentId = crmParentId;
+
+    const crmParentCurrentResult = await client.query<{ notes: string | null }>(
+      `SELECT notes
+       FROM crm_parents
+       WHERE id = $1
+       LIMIT 1`,
+      [resolvedCrmParentId]
+    );
+    const mergedCrmParentNotes = appendCrmNote(
+      crmParentCurrentResult.rows[0]?.notes || null,
+      parentCrmNoteEntry
+    );
+
+    await client.query(
+      `UPDATE crm_parents
+       SET name = CASE
+             WHEN NULLIF(name, '') IS NULL AND NULLIF($2, '') IS NOT NULL
+               THEN $2
+             ELSE name
+           END,
+           email = CASE
+             WHEN NULLIF(email, '') IS NULL AND NULLIF($3, '') IS NOT NULL
+               THEN $3
+             ELSE email
+           END,
+           phone = CASE
+             WHEN NULLIF(phone, '') IS NULL AND NULLIF($4, '') IS NOT NULL
+               THEN $4
+             ELSE phone
+           END,
+           notes = $5,
+           is_dead = false,
+           last_activity_at = CURRENT_TIMESTAMP,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1`,
+      [
+        resolvedCrmParentId,
+        parentName,
+        normalizedEmail,
+        parentPhone,
+        mergedCrmParentNotes,
+      ]
+    );
+
+    await client.query(
+      `UPDATE parents
+       SET crm_parent_id = $2,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1
+         AND crm_parent_id IS NULL`,
+      [parentId, resolvedCrmParentId]
+    );
+
+    const existingPlayerResult = await client.query<{
+      id: string;
+      crm_player_id: number | null;
+    }>(
+      `SELECT id, crm_player_id
+       FROM players
+       WHERE parent_id = $1
+         AND lower(name) = lower($2)
+       LIMIT 1`,
+      [parentId, playerName]
+    );
+
+    let playerId = "";
+    let crmPlayerId: number | null = existingPlayerResult.rows[0]?.crm_player_id || null;
+    if (existingPlayerResult.rows[0]) {
+      playerId = existingPlayerResult.rows[0].id;
+      await client.query(
+        `UPDATE players
+         SET age = $2,
+             birthdate = COALESCE($3::date, birthdate),
+             dominant_foot = COALESCE(NULLIF(dominant_foot, ''), $4),
+             team_level = COALESCE(NULLIF(team_level, ''), $5),
+             long_term_development_notes = COALESCE(NULLIF(long_term_development_notes, ''), $6),
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $1`,
+        [
+          playerId,
+          data.playerAge,
+          playerBirthdate,
+          dominantFoot,
+          teamLevel,
+          developmentNotes,
+        ]
+      );
+    } else {
+      const createdPlayerResult = await client.query<{ id: string }>(
+        `INSERT INTO players (
+          parent_id, name, age, birthdate, dominant_foot, team_level, long_term_development_notes
+         ) VALUES ($1, $2, $3, $4::date, $5, $6, $7)
+         RETURNING id`,
+        [
+          parentId,
+          playerName,
+          data.playerAge,
+          playerBirthdate,
+          dominantFoot,
+          teamLevel,
+          developmentNotes,
+        ]
+      );
+      playerId = createdPlayerResult.rows[0].id;
+    }
+
+    if (!crmPlayerId) {
+      const existingCrmPlayerResult = await client.query<{ id: number }>(
+        `SELECT id
+         FROM crm_players
+         WHERE parent_id = $1
+           AND lower(name) = lower($2)
+         ORDER BY id ASC
+         LIMIT 1`,
+        [resolvedCrmParentId, playerName]
+      );
+
+      if (existingCrmPlayerResult.rows[0]) {
+        crmPlayerId = existingCrmPlayerResult.rows[0].id;
+      }
+    }
+
+    if (!crmPlayerId) {
+      const createdCrmPlayerResult = await client.query<{ id: number }>(
+        `INSERT INTO crm_players (
+          parent_id, name, age, team, notes, birthday
+         ) VALUES ($1, $2, $3, $4, $5, $6::date)
+         RETURNING id`,
+        [
+          resolvedCrmParentId,
+          playerName,
+          data.playerAge,
+          teamLevel,
+          playerCrmNoteEntry,
+          playerBirthdate,
+        ]
+      );
+      crmPlayerId = createdCrmPlayerResult.rows[0].id;
+    }
+
+    if (!crmPlayerId) {
+      throw new Error("Unable to create or locate CRM player record.");
+    }
+    const resolvedCrmPlayerId = crmPlayerId;
+
+    const crmPlayerCurrentResult = await client.query<{ notes: string | null }>(
+      `SELECT notes
+       FROM crm_players
+       WHERE id = $1
+       LIMIT 1`,
+      [resolvedCrmPlayerId]
+    );
+    const mergedCrmPlayerNotes = appendCrmNote(
+      crmPlayerCurrentResult.rows[0]?.notes || null,
+      playerCrmNoteEntry
+    );
+
+    await client.query(
+      `UPDATE crm_players
+       SET age = $2,
+           team = COALESCE(NULLIF($3, ''), team),
+           birthday = COALESCE($4::date, birthday),
+           notes = $5,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1`,
+      [
+        resolvedCrmPlayerId,
+        data.playerAge,
+        teamLevel,
+        playerBirthdate,
+        mergedCrmPlayerNotes,
+      ]
+    );
+
+    await client.query(
+      `UPDATE players
+       SET crm_player_id = $2,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1
+         AND crm_player_id IS NULL`,
+      [playerId, resolvedCrmPlayerId]
+    );
+
+    await client.query("COMMIT");
+
+    return {
+      parentId,
+      playerId,
+      parentEmail: normalizedEmail,
+      parentWasCreated,
+      generatedPassword,
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export async function createPlayerSignup(
   data: Pick<
     PlayerSignup,
@@ -530,12 +955,14 @@ export async function createPlayerSignup(
     | "emergency_contact"
     | "contact_email"
   > &
-    Partial<Pick<PlayerSignup, "contact_phone" | "foot" | "team" | "notes">>
+    Partial<
+      Pick<PlayerSignup, "contact_phone" | "birthday" | "foot" | "team" | "notes">
+    >
 ): Promise<PlayerSignup> {
   const result = await pool.query(
     `INSERT INTO player_signups (
-      group_session_id, first_name, last_name, emergency_contact, contact_phone, contact_email, foot, team, notes, has_paid
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, false)
+      group_session_id, first_name, last_name, emergency_contact, contact_phone, contact_email, birthday, foot, team, notes, has_paid
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7::date, $8, $9, $10, false)
     RETURNING *`,
     [
       data.group_session_id,
@@ -544,6 +971,7 @@ export async function createPlayerSignup(
       data.emergency_contact,
       data.contact_phone || null,
       data.contact_email,
+      data.birthday || null,
       data.foot || null,
       data.team || null,
       data.notes || null,

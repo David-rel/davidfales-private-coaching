@@ -9,6 +9,9 @@ import {
 
 export const dynamic = "force-dynamic";
 const GROUP_TIME_ZONE = "America/Phoenix";
+const PLAYER_DASHBOARD_URL =
+  process.env.NEXT_PUBLIC_PLAYER_DASHBOARD_URL ||
+  "https://app.davidssoccertraining.com";
 
 function addMinutes(input: string | Date, minutes: number) {
   return new Date(new Date(input).getTime() + minutes * 60_000);
@@ -43,6 +46,8 @@ async function sendGroupSignupConfirmationEmail(params: {
   sessionDateEnd: string | null;
   location: string | null;
   receiptUrl: string | null;
+  loginEmail: string;
+  loginPassword: string | null;
 }) {
   const gmailUser = process.env.GMAIL_USER_GROUPS;
   const gmailPass = process.env.GMAIL_PASS_GROUPS;
@@ -73,6 +78,15 @@ async function sendGroupSignupConfirmationEmail(params: {
           <p style="margin: 0 0 8px;"><strong>Time:</strong> ${timeLabel}</p>
           <p style="margin: 0;"><strong>Location:</strong> ${params.location || "TBD"}</p>
         </div>
+        <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px; margin-top: 12px;">
+          <p style="margin: 0 0 8px;"><strong>Player App:</strong> <a href="${PLAYER_DASHBOARD_URL}" style="color: #047857;">${PLAYER_DASHBOARD_URL}</a></p>
+          <p style="margin: 0 0 8px;"><strong>Login email:</strong> ${params.loginEmail}</p>
+          ${
+            params.loginPassword
+              ? `<p style="margin: 0;"><strong>Temporary password:</strong> ${params.loginPassword}</p>`
+              : `<p style="margin: 0;">Use your existing password for sign in.</p>`
+          }
+        </div>
         ${
           params.receiptUrl
             ? `<p style="margin: 16px 0 0;"><a href="${params.receiptUrl}" style="color: #047857;">View Stripe receipt</a></p>`
@@ -96,6 +110,9 @@ async function sendGroupSignupOwnerNotificationEmail(params: {
   sessionDateEnd: string | null;
   location: string | null;
   receiptUrl: string | null;
+  parentPortalUrl: string;
+  parentLoginEmail: string;
+  parentLoginPassword: string | null;
 }) {
   const gmailUser = process.env.GMAIL_USER_GROUPS;
   const gmailPass = process.env.GMAIL_PASS_GROUPS;
@@ -130,6 +147,15 @@ async function sendGroupSignupOwnerNotificationEmail(params: {
           <p style="margin: 0 0 8px;"><strong>Emergency contact:</strong> ${params.emergencyContact}</p>
           <p style="margin: 0 0 8px;"><strong>Contact phone:</strong> ${params.contactPhone || "N/A"}</p>
           <p style="margin: 0;"><strong>Contact email:</strong> ${params.contactEmail}</p>
+        </div>
+        <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px; margin-top: 14px;">
+          <p style="margin: 0 0 8px;"><strong>Parent App URL:</strong> <a href="${params.parentPortalUrl}" style="color: #047857;">${params.parentPortalUrl}</a></p>
+          <p style="margin: 0 0 8px;"><strong>Parent app email:</strong> ${params.parentLoginEmail}</p>
+          ${
+            params.parentLoginPassword
+              ? `<p style="margin: 0;"><strong>Parent app password:</strong> ${params.parentLoginPassword}</p>`
+              : `<p style="margin: 0;">Existing account reused (password unchanged).</p>`
+          }
         </div>
         ${
           params.receiptUrl
@@ -197,6 +223,12 @@ export async function POST(request: NextRequest) {
         }
       );
 
+      const metadata = checkoutSession.metadata || {};
+      const metadataLoginEmail = (metadata.parent_portal_email || "").trim();
+      const metadataLoginPassword = (metadata.parent_portal_password || "").trim();
+      const loginEmail = metadataLoginEmail || paidSignup?.contact_email || "";
+      const loginPassword = metadataLoginPassword || null;
+
       // Send exactly one confirmation email for a newly-paid signup.
       if (paidSignup?.contact_email) {
         const session = await getGroupSessionById(paidSignup.group_session_id);
@@ -210,6 +242,8 @@ export async function POST(request: NextRequest) {
               sessionDateEnd: session.session_date_end,
               location: session.location,
               receiptUrl,
+              loginEmail,
+              loginPassword,
             });
           } catch (emailError) {
             console.error("Failed to send group signup confirmation email", emailError);
@@ -232,6 +266,9 @@ export async function POST(request: NextRequest) {
               sessionDateEnd: session.session_date_end,
               location: session.location,
               receiptUrl,
+              parentPortalUrl: PLAYER_DASHBOARD_URL,
+              parentLoginEmail: loginEmail,
+              parentLoginPassword: loginPassword,
             });
           } catch (ownerEmailError) {
             console.error("Failed to send group signup owner alert email", ownerEmailError);
